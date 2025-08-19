@@ -1,0 +1,49 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environments (very important)
+.venv/
+env/
+venv/
+
+# Editor & system files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Git
+.git/
+.gitignore
+
+# Logs & test outputs
+*.log
+.coverage
+htmlcov/
+
+# Jupyter or local data
+*.ipynb
+*.csv
+*.tsv
+*.parquet
+*.sqlite
+*.db
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+
+# Docker
+Dockerfile
+docker-compose.yml
+
+Dockerfile.dev
+
+test_main.http
+README.md
+
+k8s/
+

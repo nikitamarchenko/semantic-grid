@@ -1,0 +1,173 @@
+import { KeyboardDoubleArrowRight, OpenInNew } from "@mui/icons-material";
+import { Box, IconButton, Tooltip } from "@mui/material";
+import { format } from "date-fns";
+import Link from "next/link";
+import React from "react";
+
+import {
+  isSolanaAddress,
+  isSolanaSignature,
+  maybeDate,
+} from "@/app/helpers/cell";
+
+const handleLinkClick = (e: any) => {
+  e.stopPropagation();
+};
+
+const floatHints = [
+  "amount",
+  "balance",
+  "price",
+  "fee",
+  "cost",
+  "value",
+  "rate",
+  "amt",
+  "val",
+  "cost",
+  "p&l",
+  "pnl",
+  "vol",
+  "usd",
+];
+const intHints = [
+  "count",
+  "quantity",
+  "number",
+  "id",
+  "index",
+  "qty",
+  "idx",
+  "num",
+];
+
+export const StyledValue = ({
+  value = "",
+  params,
+  successors,
+}: {
+  value: string;
+  params: any;
+  successors?: { name: string; id: string; refs?: any; session_id?: string }[];
+}) => {
+  // Trim the value to remove extra spaces
+  const trimmedValue = (value || "").toString().trim();
+
+  const refRow = successors?.find((s) =>
+    (s.refs?.rows || [[]]).find((r: any[]) =>
+      r.find((rr: any) => Object.values(params.row).includes(rr)),
+    ),
+  );
+
+  // Check if the trimmed value is a date
+  const maybeDateValue = maybeDate(trimmedValue);
+  if (maybeDateValue) {
+    const formattedDate = format(maybeDateValue, "MM-dd-yy HH:mm:ss");
+    return <span style={{ whiteSpace: "nowrap" }}>{formattedDate}</span>; // Convert to a date
+  }
+
+  // Check if the trimmed value is a number
+  const maybeNumber = Number(trimmedValue);
+  if (trimmedValue && !Number.isNaN(maybeNumber)) {
+    const isFloat = floatHints.some((hint) => params.field.includes(hint));
+    const isInt = intHints.some((hint) => params.field.includes(hint));
+    return (
+      <span
+        style={{ display: "inline-block", width: "100%", textAlign: "end" }}
+      >
+        {isFloat &&
+          !isInt &&
+          maybeNumber.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        {!isFloat &&
+          isInt &&
+          maybeNumber.toLocaleString(undefined, {
+            maximumFractionDigits: 0,
+          })}
+        {!isFloat && !isInt && maybeNumber.toLocaleString()}
+      </span>
+    );
+  }
+  if (isSolanaAddress(trimmedValue)) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          "&:hover .MuiSvgIcon-root": {
+            color: (theme) => theme.palette.primary.main,
+          },
+        }}
+      >
+        {trimmedValue}
+        {refRow && (
+          <IconButton
+            component={Link}
+            href={`/query/${refRow.session_id}`}
+            size="small"
+            sx={{ ml: 0 }}
+            onClick={handleLinkClick}
+          >
+            <KeyboardDoubleArrowRight
+              fontSize="small"
+              sx={{ color: (theme) => theme.palette.primary.main }}
+            />
+          </IconButton>
+        )}
+
+        <IconButton
+          component={Link}
+          href={`https://solscan.io/account/${trimmedValue}`}
+          size="small"
+          sx={{ ml: 0 }}
+          onClick={handleLinkClick}
+        >
+          <Tooltip title="View on Solscan">
+            <OpenInNew
+              fontSize="small"
+              sx={{
+                color: "transparent",
+                "&:hover": { color: (theme) => theme.palette.primary.main },
+              }}
+            />
+          </Tooltip>
+        </IconButton>
+      </Box>
+    );
+  }
+  if (isSolanaSignature(trimmedValue)) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          "&:hover .MuiSvgIcon-root": {
+            color: (theme) => theme.palette.primary.main,
+          },
+        }}
+      >
+        {trimmedValue.slice(0, 8)}...{trimmedValue.slice(-8)}
+        <Link
+          href={`https://solscan.io/tx/${trimmedValue}`}
+          target="_blank"
+          passHref
+        >
+          <IconButton size="small" sx={{ ml: 0 }} onClick={handleLinkClick}>
+            <Tooltip title="View on Solscan">
+              <OpenInNew
+                fontSize="small"
+                sx={{
+                  color: "transparent",
+                  "&:hover": { color: (theme) => theme.palette.primary.main },
+                }}
+              />
+            </Tooltip>
+          </IconButton>
+        </Link>
+      </Box>
+    );
+  }
+  return <span>{value || ""}</span>; // Return as-is if not a date or solana address or number
+};

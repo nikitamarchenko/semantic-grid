@@ -1,0 +1,180 @@
+version: "1.0"
+id: "clickhouse_solana_db"
+description: "Capabilities for querying Solana on-chain data via ClickHouse tables: token_balance, instruction, transaction, and account_balance."
+
+components:
+  - name: clickhouse_solana_tool
+    type: tool
+    description: Performs SQL queries against Solana blockchain data stored in ClickHouse.
+
+    schema_description:
+      dialect: clickhouse
+      tables:
+        - name: token_balance
+          description: Contains history of Token balance changes in accounts. Each row represents a balance update triggered by an instruction, capturing both the previous and new balance states. Table is partitioned by **day** column.
+          columns:
+            - name: slot
+              description: Solana slot number when account balance changed
+              hidden: true
+            - name: ts
+              description: Timestamp of the balance change (without a timezone).
+            - name: day
+              description: UTC date of the balance change (in YYYYMMDD format).
+            - name: signature
+              description: Transaction signature associated with the balance change.
+            - name: index_in_block
+              description: Index of the instruction within the block.
+            - name: account_pubkey
+              description: Solana address (public key) of the Token Account holding Token.
+              hidden: true
+            - name: owner
+              description: Solana address of Token owner (usually a wallet).
+            - name: token_mint
+              description: SPL token address, or Token Mint Address, a unique address of the Token in Solana.
+              example: mb1eu7TzEc71KxDpsmsKoucSSuuoGLv1drys1oP2jh6
+            - name: program_id
+              description: Address of the Solana program associated with this token.
+              hidden: true
+            - name: pre_balance
+              description: Balance before the change (in the smallest token units).
+            - name: post_balance
+              description: Balance after the change (in the smallest token units).
+            - name: pre_decimals
+              description: Number of decimal places in pre_balance.
+            - name: post_decimals
+              description: Number of decimal places in post_balance.
+            - name: pre_balance_ui
+              description: Balance before the change, formatted for UI (pre_balance / 10^pre_decimals).
+            - name: post_balance_ui
+              description: Balance after the change, formatted for UI (post_balance / 10^post_decimals).
+            - name: change
+              description: Difference between post_balance and pre_balance (in the smallest token units).
+            - name: change_ui
+              description: Difference in UI format (change / 10^post_decimals).
+            - name: is_valid
+              description: Data validity flag
+              example: TRUE — valid data, FALSE — possible errors, rejected.
+
+        - name: instruction
+          description: Contains parsed Instructions of Transactions.
+          columns:
+            - name: ts
+              description: Timestamp of the transaction (without timezone).
+            - name: day
+              description: Transaction date in YYYYMMDD format.
+            - name: signature
+              description: Transaction signature, a unique identifier. Linked to the **Transaction** table.
+            - name: instruction_type
+              description: Type of instruction (e.g., transfer).
+            - name: amount
+              description: Amount of tokens transferred in the transaction.
+            - name: decimals
+              description: Number of decimal places for the token.
+            - name: calculated_amount
+              description: Human-readable format of the transferred amount.
+            - name: account_owner
+              description: Owner of the account associated with the instruction. Used in burn instructions.
+            - name: account_mint
+              description: Token mint associated with the account. Used in burn instructions.
+            - name: destination_owner
+              description: Solana address of the owner of the token transfer instruction destination.
+              example: DMAxEjg3AQ3x9twpmAhCBig6XC1gfjbEjCc894zqgJCc
+            - name: destination_mint
+              description: Token associated with the recipient account for transfer and transferChecked instruction.
+            - name: source_owner
+              description: Solana address of the owner of the token transfer instruction source.
+              example: DMAxEjg3AQ3x9twpmAhCBig6XC1gfjbEjCc894zqgJCc
+            - name: source_mint
+              description: Token associated with the sender account for transfer and transferChecked instruction.
+            - name: is_valid
+              description: Data validity flag (TRUE — valid data, FALSE — possible errors, rejected.)
+
+        - name: transaction
+          description: contains blockchain transaction data, including block information, signatures, accounts, execution costs, and transaction status. On Solana blockchain, a transaction is a collection of instructions. This table doesn't mean to be used directly.
+          hidden: true
+          columns:
+            - name: ts
+              description: Timestamp of the transaction (when it was recorded in the block).
+            - name: day
+              description: The day the transaction occurred (in YYYYMMDD format).
+            - name: signature
+              description: Transaction signature, a unique identifier.
+            - name: index_in_block
+              description: Index of the transaction within the block.
+            - name: accounts
+              description: List of accounts involved in the transaction.
+            - name: writable_accounts
+              description: List of accounts that can be modified within the transaction.
+            - name: signers_accounts
+              description: Accounts that signed the transaction.
+            - name: fee
+              description: Transaction execution fee.
+            - name: compute_units_consumed
+              description: Number of compute units used for transaction execution.
+            - name: return_program_id
+              description: Identifier of the program that returned the execution result.
+            - name: is_valid
+              description: Transaction success flag.
+              example: true – successful, false – failed.
+
+        - name: account_balance
+          description: contains balance changes for Solana accounts on the blockchain. Each row represents a balance update triggered by an instruction, capturing both the previous and new balance states. The data is partitioned by **day** column for efficient querying.
+          columns:
+            - name: ts
+              description: Timestamp when the balance change was recorded.
+            - name: day
+              description: The day when the balance change occurred (in YYYYMMDD format).
+            - name: signature
+              description: Transaction signature, a unique identifier.
+            - name: index_in_block
+              description: Index of the transaction within the block.
+            - name: account
+              description: Blockchain address of the account whose balance changed.
+            - name: pre_balance
+              description: Account balance before the transaction execution (recorded as a high-precision decimal).
+            - name: post_balance
+              description: Account balance after the transaction execution.
+            - name: change
+              description: Difference between post_balance and pre_balance, representing the net change in balance.
+            - name: is_valid
+              description: Flag indicating whether the transaction was successfully processed.
+              example: true – successful, false – failed.
+
+
+  - name: sql_prompt_guidance
+    type: context_provider
+    description: Provides dynamic prompt instructions and scaffolding for SQL generation and intent interpretation.
+    capabilities:
+      - name: dynamic_prompt_generation
+        description: Supplies structured rules, guidance, and LLM-compatible prompt scaffolding for Solana ClickHouse queries.
+        input_types: [user_query, capability_context]
+        output_types: [prompt_instruction_list, intent_formulation]
+        retrieval_capability: false
+
+  - name: sql_example_index
+    type: context_provider
+    description: Retrieves similar examples of past questions and their canonical SQL queries.
+    capabilities:
+      - name: query_sql_examples
+        input_types: [user_query]
+        output_types: [sql_snippet, explanation, matched_examples]
+        retrieval_capability: true
+        storage_backend: "vector_db"
+        vector_model: "text-embedding-ada-002"
+        notes: |
+          Embedding-powered nearest-neighbor lookup over curated text-to-SQL pairs.
+          Useful for few-shot prompting and guiding SQL generation via similar cases.
+
+  - name: solana_named_entity_index
+    type: context_provider
+    description: Maps named entities (tokens, DAOs, wallet names) to canonical Solana addresses.
+    capabilities:
+      - name: entity_resolution
+        input_types: [free_text_label]
+        output_types: [canonical_address, entity_type, known_aliases]
+        retrieval_capability: true
+        storage_backend: "vector_db"
+        entity_types: ["token", "wallet", "program", "exchange"]
+        notes: |
+          This index resolves fuzzy or aliased names (e.g. "MOBILE", "Jupiter", "DAO wallet")
+          into structured Solana addresses and metadata.

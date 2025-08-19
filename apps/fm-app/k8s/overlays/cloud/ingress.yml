@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fm-app-ingress
+  namespace: prod
+spec:
+  ingressClassName: external-nginx
+  tls:
+    - hosts:
+        - api.apegpt.ai
+      secretName: api-apegpt-ai-tls
+  rules:
+    - host: api.apegpt.ai
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fm-app-svc
+                port:
+                  number: 8080

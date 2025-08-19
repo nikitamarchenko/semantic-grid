@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dbmeta-cfg
+  namespace: prod
+  labels:
+    app: dbmeta-app
+data:
+  LOG_LEVEL: 'INFO'
+  DATABASE_WH_PORT: '9000'
+  DATABASE_WH_PORT_NEW: '9000'
+  DATABASE_WH_SERVER: 'host.docker.internal'
+  DATABASE_WH_SERVER_NEW: 'host.docker.internal'
+  DATABASE_WH_DB: 'wh'
+  DATABASE_WH_DB_NEW: 'wh'

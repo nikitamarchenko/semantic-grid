@@ -1,0 +1,76 @@
+version: 1.0.0
+description: "Prompt instructions for dbmeta app"
+profiles:
+  strategy: replace
+  all:
+    - "If query has UNION statement, please explicitly specify UNION ALL or UNION DISTINCT."
+    - "Don't use any data-modifying statements in the query."
+    - |
+      When asked about transfers or transactions of tokens for specific wallet or owner addresses,
+      remember that token transfers happen not between wallets directly but between token accounts owned by wallets
+      (i.e. use **dst_owner** and **src_owner** fields)!
+    - |
+      **Trade** or **Exchange** or **Swap** in Solana context means transaction having two
+      or more instructions of the type **Transfer** or **TransferChecked**.
+      These transactions usually involve two or more Token Mint accounts.
+
+  wh_v2:
+      - |
+        Detailed data (all tables in DB) is available for (at most) the past 30 days
+      - |
+        When asked about anything with timeframe before past 30 days, remember tha there is
+        NO history of balance changes, NO instructions or transactions before that date.
+        Please DO NOT aggregate or filter balances earlier than 30 days from today.
+      - |
+        Use `WHERE is_snapshot = TRUE and ...` to get a single final value for queried data from snapshot.
+        Use `WHERE is_snapshot = FALSE and ...` to get or aggregate detailed data.
+      - |
+        When doing argMax or similar queries to analyze parameter over a period of time,
+        remember that in Solana, changes could occur in several different slots with the same timestamp.
+      - "When asked about Transactions or account Owners, don't forget to check for unique values."
+      - "When sourcing data from Instruction table, remember that there usually are multiple Instructions per Transaction."
+      - "Use **signature** column to join Instruction and Transaction tables."
+      - "Use **signature** column in Transaction and Instruction table to check for uniqueness of transactions."
+      - "Use expressions like \"SELECT count(DISTINCT signature) FROM instruction ...\" to count unique transactions."
+      - |
+        When asked about balances without any date range or references, assume the date of query
+        or the latest date on record
+      - |
+        **token_balance** (for tokens) and **account_balance** (for native SOL coin) tables only track *changes*
+        of the balances as the result of executed instructions, not actual balances on any given date.
+        Therefore, if asked about a balance on a specific date, look for the latest balance change before that date.
+      - |
+        When asked questions about wallets (or addresses, or owners), instructions and transactions,
+        use \"SELECT count(DISTINCT signature) FROM <table> ...\" or an aggregation to show unique subjects or objects.
+      - |
+        When asked about Token balance for specific wallet(s) or owner addresses(s),
+        remember to use **owner** field when searching by owner or user wallet.
+        Never use **account_pubkey** in that case since it's NOT an owner of the Token but an intermediary token account!
+      - "Always use **ts** column in all tables to filter or sort by date and or time."
+      - |
+        When sorting **instruction**, **account_balance** and **token_balance** tables, or using argMax or similar queries,
+        use synthetic index field as a tuple of `(ts, slot, synthetic_index)` to get the correct deterministic value.
+      - |
+        To check transactions for any of specific account(s) use **accounts** field in the following expression:
+        "... hasAny(accounts, [
+            'SSmBEooM7RkmyuXxuKgAhTvhQZ36Z3G2WsmLGJKoQLY',
+            'punK4RDD3pFbcum79ACHatYPLLE1hr5UNnQVUGNfeyP',
+            'Vote111111111111111111111111111111111111111'
+        ])", or use hasAll(accounts, [...]) to check for all accounts.
+      - |
+        When asked about aggregate data on token transfers, mints, etc., use **instruction** table, not **dex** table.
+        Note that **DEX** table is not suitable for overall aggregations, since it has partial data that relates only to specific DEXes.
+      - |
+        When asked about specific token(s) by their ticker name, while using **source_ticker** or **destination_ticker** fields,
+        always perform case-insensitive comparison using LOWER() function
+      - |
+        In the context of trading analysis, in reference to winning or losing trades, use the following steps:
+          -   Qualified Wallets: Identify wallets that have made fewer than 100 DEX trades per day.
+          -	Token Price Calculation: Use any dex swaps token vs USDC/USDT in a slot to calculate average token price in USD.
+          -	Cost Basis Calculation: For preceding token buys, calculate the average token buy price (in USD).
+          -   PNL calculation: pnl = est_usd_received - (token_sold × avg_price_usd_from_prior_buys)
+              Where: est_usd_received = token_sold × slot_price_usd and
+              avg_price_usd_from_prior_buys = SUM(usd_spent) / SUM(token_bought) for ts < sell_ts
+          -	Profit or Loss Identification: Filter for trades where the sell price (in USD)
+              exceeds the average buy price (in USD) for the same amount of tokens (or vise versa).
+          -   Win / Loss Ratio is the relation of the amount of winning or losing trades to all trades (for a specific wallet and token).

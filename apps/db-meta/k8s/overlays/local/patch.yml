@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dbmeta-app
+  namespace: prod
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: dbmeta-app
+    spec:
+      containers:
+        - name: dbmeta-app
+          image: 'dbmeta:3.20'

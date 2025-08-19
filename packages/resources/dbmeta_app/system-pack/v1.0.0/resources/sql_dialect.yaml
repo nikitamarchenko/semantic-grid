@@ -1,0 +1,3 @@
+# sql_dialect.yaml
+# This file contains SQL dialect instructions for the dbmeta_app.
+# Override or amend this file in client-configs overlays to customize behavior.

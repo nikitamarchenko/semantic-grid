@@ -1,0 +1,217 @@
+services:
+#  ssh-connection:
+#    container_name: ssh
+#    image: alpine
+#    volumes:
+#      - $HOME/.ssh:/root/.ssh:ro
+#    ports:
+#      - "53432:5444"
+#    command: [ "sh", "-c", "apk add openssh && ssh -vvv -4 -N -L 5444:127.0.0.1:5432 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 -i /root/.ssh/id_ed25519_new leo@88.198.19.187" ]
+#    restart: unless-stopped
+#    healthcheck:
+#      test: [ "CMD", "pg_isready", "-U", "leo", "-h", "localhost", "-p", "5444" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+  etcd:
+    container_name: milvus-etcd
+    image: quay.io/coreos/etcd:v3.5.16
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/etcd:/etcd
+    command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  minio:
+    container_name: milvus-minio
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "9001:9001"
+      - "9900:9000"
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/minio:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  milvus:
+    container_name: milvus
+    image: milvusdb/milvus:v2.5.4
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+    - seccomp:unconfined
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+      MILVUS_LOG_LEVEL: "warn"
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/milvus:/var/lib/milvus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      start_period: 90s
+      timeout: 20s
+      retries: 3
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    depends_on:
+      - "etcd"
+      - "minio"
+
+  db:
+    container_name: db
+    image: "postgres:16.4"
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=fm_app
+    volumes:
+      - ~/.psql:/fm_api_data
+    shm_size: 1g
+#    depends_on:
+#      - ssh-connection
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: "rabbitmq:3-management"
+    ports:
+      - "5672:5672" # RabbitMQ broker port
+      - "15672:15672" # RabbitMQ management UI port
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_LOG_LEVEL=warning  # Set log level to warning
+    logging:
+      driver: "none"
+
+  dbmeta:
+    container_name: dbmeta
+    image: "dbmeta"
+    ports:
+      - "8888:8080"
+    volumes:
+      - ../dbmeta:/app
+    environment:
+      - WORKERS=1
+    depends_on:
+      milvus:
+        condition: service_healthy  # Ensure Milvus is ready
+    command: [ "./run.sh" ]
+
+  dbmeta-etl:
+    container_name: dbmeta-etl
+    image: "dbmeta"
+    depends_on:
+      milvus:
+        condition: service_healthy  # Ensure Milvus is ready before running ETL
+    environment:
+      VECTOR_DB_HOST: milvus
+      VECTOR_DB_PORT: 19530
+      VECTOR_DB_COLLECTION_NAME: "apegpt_prompts"
+      VECTOR_DB_EMBEDDINGS: "all-MiniLM-L6-v2"
+      VECTOR_DB_METRIC_TYPE: "L2"
+      # Choose IVF_FLAT, IVF_PQ, or HNSW as needed
+      VECTOR_DB_INDEX_TYPE: "HNSW"
+      VECTOR_DB_PARAMS: "{\"nprobe\": 15}"
+      ETL_FILE_NAME: "/app/dbmeta_app/query_examples.yaml"
+    command: [ "python", "/app/dbmeta_app/etl/load.py" ]  # Correct path
+    restart: "no"  # Ensures the container doesn't restart after execution
+
+  dbref:
+    container_name: dbref
+    image: "dbref"
+    ports:
+      - "8889:8080"
+    volumes:
+      - ../dbref:/app
+    environment:
+      - WORKERS=1
+    command: [ "./run.sh" ]
+    depends_on:
+      milvus:
+        condition: service_healthy  # Ensure Milvus is ready
+
+  dbref-etl:
+    container_name: dbref-etl
+    image: "dbref"
+    depends_on:
+      milvus:
+        condition: service_healthy  # Ensure Milvus is ready before running ETL
+    environment:
+      VECTOR_DB_HOST: milvus
+      VECTOR_DB_PORT: 19530
+      VECTOR_DB_COLLECTION_NAME: "solana_tokens"
+      VECTOR_DB_EMBEDDINGS: "all-MiniLM-L6-v2"
+      VECTOR_DB_METRIC_TYPE: "L2"
+      # Choose IVF_FLAT, IVF_PQ, or HNSW as needed
+      VECTOR_DB_INDEX_TYPE: "HNSW"
+      VECTOR_DB_PARAMS: "{\"nprobe\": 15}"
+      ETL_FILE_NAME: "token-list-2025-02-15.csv"
+    command: [ "python", "/app/dbref_app/etl/embed.py" ]  # Correct path
+    # command: [ "./etl.sh" ]  # Adjust as needed
+    restart: "no"  # Ensures the container doesn't restart after execution
+
+
+  fm_app:
+    container_name: fm_app
+    build:
+      context: ..
+      dockerfile: ../Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    env_file:
+      - ../.env
+    # environment:
+    #  ROOT_PATH: "/" # Replace with the desired root path or use an environment file
+    command: >
+      bash -c "
+      alembic upgrade head;
+      uvicorn fm_app:app --host 0.0.0.0 --port 8080 --workers 4 --root-path $ROOT_PATH
+      "
+    depends_on:
+      db:
+        condition: service_healthy
+
+  fm_app_celery:
+    build:
+      context: ..
+    container_name: fm_app_celery
+    env_file:
+      - ../.env
+    volumes:
+      - .:/app
+    command: >
+      celery -A fm_app.workers.worker worker --loglevel=INFO
+    environment:
+      CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672/
+    depends_on:
+      - fm_app
+      - rabbitmq
+
+volumes:
+  fm_api_data:
+    driver: local

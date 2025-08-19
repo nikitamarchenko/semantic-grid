@@ -1,0 +1,22 @@
+entry_point: process_input
+finish_point: format_response
+
+nodes:
+  - id: process_input
+    function: process_input_node
+    description: "Process user input and clarify intent"
+
+  - id: generate_plan
+    function: generate_execution_plan_node
+    description: "Plan and execute a multi-step query pipeline"
+
+  - id: format_response
+    function: format_response_node
+    description: "Summarize and format result into human response"
+
+edges:
+  - from: process_input
+    to: generate_plan
+
+  - from: generate_plan
+    to: format_response

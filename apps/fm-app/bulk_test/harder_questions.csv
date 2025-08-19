@@ -1,0 +1,26 @@
+OpenAISimpleNWH|Get the wallet with the highest MOBILE token balance that had its balance drop below 1.0 at any time during April 2025.|9mtUVqjS3mAHcu8hNmWxnTuMZ1Z6jxqMuJRQ4ijroiWK
+GeminiSimpleNWH|Get the wallet with the highest MOBILE token balance that had its balance drop below 1.0 at any time during April 2025.|9mtUVqjS3mAHcu8hNmWxnTuMZ1Z6jxqMuJRQ4ijroiWK
+DeepseekSimpleNWH|Get the wallet with the highest MOBILE token balance that had its balance drop below 1.0 at any time during April 2025.|9mtUVqjS3mAHcu8hNmWxnTuMZ1Z6jxqMuJRQ4ijroiWK
+OpenAISimpleNWH|What is the number of transactions in April 2025 where a wallet transferred tokens to itself?|994
+GeminiSimpleNWH|What is the number of transactions in April 2025 where a wallet transferred tokens to itself?|994
+DeepseekSimpleNWH|What is the number of transactions in April 2025 where a wallet transferred tokens to itself?|994
+OpenAISimpleNWH|Which wallet initiated the very first MOBILE token transfer ever recorded in your dataset?|8S24t7whcEUn8VuBRXwritKRy27NfdSWLrRz5gwQXJ9f
+GeminiSimpleNWH|Which wallet initiated the very first MOBILE token transfer ever recorded in your dataset?|8S24t7whcEUn8VuBRXwritKRy27NfdSWLrRz5gwQXJ9f
+DeepseekSimpleNWH|Which wallet initiated the very first MOBILE token transfer ever recorded in your dataset?|8S24t7whcEUn8VuBRXwritKRy27NfdSWLrRz5gwQXJ9f
+OpenAISimpleNWH|Get the single wallet with the most MOBILE token balance changes on 2025-04-06|45zpzzpZquaVv4BAdXfzNbuba7DAXV32d1sTrUh5wcnW
+GeminiSimpleNWH|Get the single wallet with the most MOBILE token balance changes on 2025-04-06|45zpzzpZquaVv4BAdXfzNbuba7DAXV32d1sTrUh5wcnW
+DeepseekSimpleNWH|Get the single wallet with the most MOBILE token balance changes on 2025-04-06|45zpzzpZquaVv4BAdXfzNbuba7DAXV32d1sTrUh5wcnW
+OpenAISimpleNWH|How many wallets both sent and received MOBILE tokens on April 6th, 2025?|19
+GeminiSimpleNWH|How many wallets both sent and received MOBILE tokens on April 6th, 2025?|19
+DeepseekSimpleNWH|How many wallets both sent and received MOBILE tokens on April 6th, 2025?|19
+OpenAISimpleNWH|What was the amount of the smallest non-zero MOBILE token transfer in April 2025?|0.000001
+GeminiSimpleNWH|What was the amount of the smallest non-zero MOBILE token transfer in April 2025?|0.000001
+DeepseekSimpleNWH|What was the amount of the smallest non-zero MOBILE token transfer in April 2025?|0.000001
+OpenAISimpleNWH|What was the latest timestamp of a MOBILE token burn instruction in April 2025?|
+DeepseekSimpleNWH|What was the latest timestamp of a MOBILE token burn instruction in April 2025?|
+OpenAISimpleNWH|Which wallet made a MOBILE token transfer with amount exactly zero in April 2025?|
+GeminiSimpleNWH|Which wallet made a MOBILE token transfer with amount exactly zero in April 2025?|
+DeepseekSimpleNWH|Which wallet made a MOBILE token transfer with amount exactly zero in April 2025?|
+OpenAISimpleNWH|Which wallet received HNT tokens from the wallet 7PKAb6JH6nnSQFzp4jmCqYJDoYdE5V7zw4tGvTGvaWZq the most times in April 2025?|45zpzzpZquaVv4BAdXfzNbuba7DAXV32d1sTrUh5wcnW
+GeminiSimpleNWH|Which wallet received HNT tokens from the wallet 7PKAb6JH6nnSQFzp4jmCqYJDoYdE5V7zw4tGvTGvaWZq the most times in April 2025?|45zpzzpZquaVv4BAdXfzNbuba7DAXV32d1sTrUh5wcnW
+DeepseekSimpleNWH|Which wallet received HNT tokens from the wallet 7PKAb6JH6nnSQFzp4jmCqYJDoYdE5V7zw4tGvTGvaWZq the most times in April 2025?|45zpzzpZquaVv4BAdXfzNbuba7DAXV32d1sTrUh5wcnW

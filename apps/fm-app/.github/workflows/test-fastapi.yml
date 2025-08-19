@@ -1,0 +1,85 @@
+name: Run FastAPI Tests
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      ROOT_PATH: "/app"
+      DATABASE_USER: "postgres"
+      DATABASE_PASS: "postgres"
+      DATABASE_PORT: 5432
+      DATABASE_SERVER: "db"
+      DATABASE_DB: "fm_app"
+      DATABASE_WH_USER: 'wh_ro'
+      DATABASE_WH_PORT: '9000'
+      DATABASE_WH_PORT_NEW: '9000'
+      DATABASE_WH_PORT_V2: '9000'
+      DATABASE_WH_SERVER: '127.0.0.1'
+      DATABASE_WH_SERVER_NEW: '127.0.0.1'
+      DATABASE_WH_SERVER_V2: '127.0.0.1'
+      DATABASE_WH_DB: 'wh'
+      DATABASE_WH_DB_NEW: 'wh'
+      DATABASE_WH_DB_V2: 'wh'
+      DATABASE_WH_PASS: 'fake'
+      DATABASE_WH_PARAMS: '?max_execution_time: 120'
+      DATABASE_WH_PARAMS_NEW: '?max_execution_time: 120'
+      DATABASE_WH_PARAMS_V2: '?max_execution_time: 120'
+      AUTH0_DOMAIN: "ape-gpt-dev.us.auth0.com"
+      AUTH0_API_AUDIENCE: "http://ape-gpt-api-dev"
+      AUTH0_ISSUER: "https://ape-gpt-dev.us.auth0.com/"
+      AUTH0_ALGORITHMS: "RS256"
+      LOG_LEVEL: "INFO"
+      WRK_BROKER_CONNECTION: "amqp://fake:fake@rabbitmq:5672/"
+      WRK_BACKEND: "db+postgresql://postgres:postgres@db:5432/celery"
+      DBMETA: "http://127.0.0.1:8080"
+      DBREF: "http://127.0.0.1:8080"
+      GOOGLE_PROJECT_ID: "bustling-bot-438222-t8"
+      GOOGLE_CRED_FILE: "/app/secrets/fake.json"
+      OPEN_AI_API: "fake"
+      DEEPSEEK_AI_API_URL: "https://api.deepseek.com/v1"
+      DEEPSEEK_AI_API_KEY: "fake"
+      GUEST_AUTH_HOST: "http://host.docker.internal:3000"
+      GUEST_AUTH_ISSUER: "https://apegpt.ai"
+      IRL_SLOTS: "http://irl-slots-svc:8080/"
+      OPEN_AI_LLM_NAME: "chatgpt-4o-latest"
+      GOOGLE_LLM_NAME: "gemini-2.0-flash"
+      ANTHROPIC_API_KEY: "fake"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: |
+          uv sync
+          uv add pytest pytest-asyncio
+
+      - name: Activate virtualenv
+        run: echo "$GITHUB_WORKSPACE/.venv/bin" >> $GITHUB_PATH
+
+      - name: Start FastAPI app
+        run: |
+          uvicorn fm_app:app --host 0.0.0.0 --port 8080 --root-path "" --reload &
+        env:
+          PYTHONUNBUFFERED: "1"
+
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
+
+      - name: Run tests
+        run: pytest fm_app/api/test_routes.py

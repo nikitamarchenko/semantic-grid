@@ -1,0 +1,10 @@
+{
+  "name": "db-meta",
+  "scripts": {
+    "dev": "uv run python -m db_meta_server.run --port 3030",
+    "build": "uv build",
+    "lint": "uv run ruff check . && uv run pyright",
+    "test": "uv run pytest -q",
+    "setup": "uv sync --frozen --all-extras"
+  }
+}

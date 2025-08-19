@@ -1,0 +1,14 @@
+
+@font-face {
+  font-family: 'Noto Sans';
+  src: url('Noto_Sans/NotoSans-VariableFont_wdth,wght.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Noto Sans Italic';
+  src: url('Noto_Sans/NotoSans-Italic-VariableFont_wdth,wght.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}

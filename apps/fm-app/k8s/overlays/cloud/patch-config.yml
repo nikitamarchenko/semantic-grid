@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fm-app-cfg
+  namespace: prod
+  labels:
+    app: fm-app
+data:
+  DATABASE_SERVER: 'postgres.postgres'
+  DATABASE_WH_SERVER: '192.168.28.176'
+  DATABASE_WH_SERVER_NEW: '192.168.28.176'
+  # DATABASE_WH_SERVER_V2: '192.168.31.187'
+  DATABASE_WH_SERVER_V2: 'rafiki.apegpt.ai'
+  DATABASE_WH_PARAMS: '?max_execution_time=360'
+  DATABASE_WH_PARAMS_NEW: '?max_execution_time=360'
+  DATABASE_WH_PARAMS_V2: '?max_execution_time=120&secure=true&verify=false'
+  # DATABASE_WH_PARAMS_V2: '?max_execution_time=360'
+  LOG_LEVEL: 'INFO'
+  GOOGLE_CRED_FILE: '/app/sa/gcp-vertex-sa.json'
+  GOOGLE_PROJECT_ID: 'bustling-bot-438222-t8'
+  GUEST_AUTH_HOST: 'https://apegpt.ai'

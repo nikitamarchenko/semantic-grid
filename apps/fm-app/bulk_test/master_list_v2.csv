@@ -1,0 +1,56 @@
+# Testing
+OpenAIDataOnlyV2|Return a wallet that have the highest number of instances where they received MOBILE tokens and subsequently sent any amount of MOBILE tokens within 24 hours. Include the number of such occurrences, total volume sent, and the average holding time before sending.|45zpzzpZquaVv4BAdXfzNbuba7DAXV32d1sTrUh5wcnW
+OpenAIDataOnlyV2|Return the largest single transaction of MOBILE tokens ever recorded between any two wallet addresses. Include the sender and recipient wallet addresses, the transaction amount (in MOBILE), timestamp, and transaction signature.|3gNGS6XnYoFEKZq9XE4EzceJNZaikCVR8TpvMzFNDYajSTZMgTddTXTcLcKMLUNVjPaYsqWuNMfSjscJKFQZBU8u
+OpenAIDataOnlyV2|Return a wallet address that have only received MOBILE tokens in amounts that are exact multiples of 10,000 MOBILE. Exclude wallets that have any transaction receiving a non-divisible amount. Select a wallet by highest number of transactions, include total volume received, and last transaction timestamp.|9Lou5nKUDfydCcHsxScbNhSa3SrbTVGD7SVYM9XwHDDP
+OpenAIDataOnlyV2|Return a wallet addresses that received the most MOBILE tokens from at least 3 different sender wallets within the same 1-hour window. Include the timestamp window, sender addresses, and total amount received (in MOBILE) during that hour.|u6PJ8DtQuPFnfmwHbGFULQ4u4EgjDiyYKjVEsynXq2w
+OpenAIDataOnlyV2|Return wallet addresses that received highest amount of MOBILE tokens from wallet 4qGj88CX3McdTXEviEaqeP2pnZJxRTsZFWyU3Mrnbku4 after the timestamp of its most recent incoming transaction. Include the amount transferred (in MOBILE), transaction signature, and timestamp.|8ZUoaQ14c6PzfQ9T4J9Ti9m1jgR35TLGozZ8FcjhNaVq
+OpenAIDataOnlyV2|Identify the most recent wallet that sent MOBILE tokens to wallet 3LkGTjNsF2zWc2ddBPHYyEJJZKqbdHJDgfjztxnjwL5R. Return that wallet’s current MOBILE token balance, along with the timestamp of the last transfer to the recipient.|45zpzzpZquaVv4BAdXfzNbuba7DAXV32d1sTrUh5wcnW
+OpenAIDataOnlyV2|Return the earliest transaction involving the MOBILE token where wallet 3LkGTjNsF2zWc2ddBPHYyEJJZKqbdHJDgfjztxnjwL5R was either the sender or the receiver. Include the timestamp, transaction signature, amount (in MOBILE), direction (sent or received), and the wallet’s balance before and after the transaction.|27k6aQ9NcBY4TuQMZSwNFDeeXxUXL1rTsG81dXhpTA7PcJNC6JHqKf3rshUFuHWWMyscDQYPm5RSzythBVaf8kNg
+OpenAIDataOnlyV2|Return the timestamp of the first transaction in which wallet 3LkGTjNsF2zWc2ddBPHYyEJJZKqbdHJDgfjztxnjwL5R received any amount of MOBILE tokens. Include the transaction signature and the amount received.|2025-02-08 00:02:03
+OpenAIDataOnlyV2|Return the amount of MOBILE tokens transferred in the first transaction where wallet 3LkGTjNsF2zWc2ddBPHYyEJJZKqbdHJDgfjztxnjwL5R was involved. Indicate whether the wallet sent or received the tokens, the timestamp, the transaction signature, and the counterparty wallet involved in the transaction.|97395.662377
+OpenAIDataOnlyV2|Identify the first wallet that sent MOBILE tokens to wallet 3LkGTjNsF2zWc2ddBPHYyEJJZKqbdHJDgfjztxnjwL5R, and return its current balance of MOBILE tokens along with the timestamp of that initial transfer.|45zpzzpZquaVv4BAdXfzNbuba7DAXV32d1sTrUh5wcnW
+OpenAIDataOnlyV2|Identify a wallet that, on at least 5 separate occasions within the February, received some amount of MOBILE tokens and then sent out the exact same amount within 10 minutes. Select the one with the biggest amount. Include the number of such occurrences and the timestamp of most recent one.|2A71J9RBKLsrFpuc18o93yCq8Mc9bSYL99sqXJeWiV88
+
+# Golden
+OpenAIDataOnlyV2|What wallet held the most MOBILE tokens on February 12th, 2025.|H15YHLuF7LnKci8tnRLmXRvCry3aQLAV4ao5Ms8FPzbr
+OpenAIDataOnlyV2|Show me the wallet that made the most token transactions on February 12th, 2025|5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1
+OpenAIDataOnlyV2|Show me the wallet that made the most token transfer transactions on February 12th, 2025|5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1
+OpenAIDataOnlyV2|Show me the wallet that made the most transfer transactions on February 12th, 2025|5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1
+OpenAIDataOnlyV2|How many MOBILE token holders with positive balance existed on February 12th 2025.|98104
+OpenAIDataOnlyV2|how many MOBILE token holders with positive balance were in February 2025?|98104
+OpenAIDataOnlyV2|What was the amount of the first MOBILE transaction in February 2025 by the wallet 5YunFCLo8WC5GHHMiJT7eLnBKqFoTarWKF85x9EC2375|1182938.254265
+OpenAIDataOnlyV2|What was the balance of the wallet that sent most recent transaction of MOBILE in February 2025 to the 7yKx1dVqPbfRU6E4TGsi3BR3JqwPPqWhEThad38M4RSP|242512277.446513
+OpenAIDataOnlyV2|What was the amount of the last HNT transaction in February 2025 by the wallet 36Rk6HH9j1jAqGbWTvPs6gbVYDgRjpex4RDv9689KfZA|-13.83856093,13.83856093,13,-13
+OpenAIDataOnlyV2|What was the balance by the end of Feb 2025 of the wallet that was the first wallet to send MOBILE to the following address 7yKx1dVqPbfRU6E4TGsi3BR3JqwPPqWhEThad38M4RSP|242512275.05872598
+OpenAIDataOnlyV2|Which wallet received the largest single MOBILE token transfer during Feb 2025?|7DRUX7a6FrHSGCmnohwcK5AWCeSPGHC1W3aLuSz1VBf5
+OpenAIDataOnlyV2|Which wallet received the largest single HNT token transfer during Feb 2025?|3vxheE5C46XzK4XftziRhwAf8QAfipD7HXXWj25mgkom
+OpenAIDataOnlyV2|What was the total amount of MOBILE tokens transferred on February 12h, 2025?|2051573238.71589559,2051573238.7158947
+OpenAIDataOnlyV2|Which wallet received the earliest MOBILE token transfer in February 2025?|45zpzzpZquaVv4BAdXfzNbuba7DAXV32d1sTrUh5wcnW
+OpenAIDataOnlyV2|What is the timestamp of the largest MOBILE token transfer in February 2025?|2025-02-08 05:22:58
+OpenAIDataOnlyV2|How many distinct wallets sent MOBILE tokens during February 2025?|5820
+OpenAIDataOnlyV2|Which wallet received tokens from the greatest number of unique wallets in February 2025?|5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1
+OpenAIDataOnlyV2|What was the total number of token transfer-related instructions processed on February 12th 2025?|136576461
+OpenAIDataOnlyV2|What was the largest balance change in a single transaction for MOBILE tokens in February 2025?|-435902504.581168,435902504.581168
+
+# Need work
+OpenAIDataOnlyV2|Identify wallets whose total amount of MOBILE tokens sent equals their total received amount within a margin of 0.01% over the February 2025, indicating no net token movement, ranking by number of such transactions in descending order. Select the top one, with largest amount of such transactions. Return the wallet address, number of matching transactions, and total volume moved in and out.|CCd3tdV8iPagtfwkqJmc8cAi1ctg8BKT9DzPEdsSdpo5
+OpenAIDataOnlyV2|Identify wallets that executed more than 50 MOBILE token transactions within 1 day of their first recorded transaction. For each wallet, include the number of transactions, total volume transacted (in MOBILE), and the timestamp of their first and most recent transactions.|45zpzzpZquaVv4BAdXfzNbuba7DAXV32d1sTrUh5wcnW
+OpenAIDataOnlyV2|Return a top wallet address that holds more than 500,000 MOBILE tokens and have never sent any MOBILE tokens. Include current balance, number of incoming transactions, and time of the most recent deposit.|H15YHLuF7LnKci8tnRLmXRvCry3aQLAV4ao5Ms8FPzbr
+OpenAIDataOnlyV2|Calculate the median transaction size of all MOBILE token transfers that occurred in 4 hours before the last transaction. Return the median value (in MOBILE), along with the total number of transactions included in the calculation.|6145.378027
+OpenAIDataOnlyV2|What was the calculated balance of the wallet with the highest number of HNT token transactions in Feb 2025 by the end of the month?|343306.8188
+OpenAIDataOnlyV2|Return the wallet address that received the highest total volume of MOBILE tokens in 6 hours before the latest transaction. Include the total amount received, number of transactions, and timestamp of the most recent incoming transfer.|45zpzzpZquaVv4BAdXfzNbuba7DAXV32d1sTrUh5wcnW
+OpenAIDataOnlyV2|Return the largest transaction that occurred involving MOBILE tokens where wallet 3LkGTjNsF2zWc2ddBPHYyEJJZKqbdHJDgfjztxnjwL5R was either the sender or the receiver. Include transaction signature, timestamp, direction (sent or received), counterparty wallet, and amount (in MOBILE).|u4L59Pbqis5eVKHcFoYJwF8QVkR5YmvntTqAL6MuJ7JoMBt9XdkTNW63PyxnCJdtr1BYyKqXJWKUFb27ooLZnrc
+OpenAIDataOnlyV2|Return a wallet address that received the largest amount of MOBILE tokens from wallet 45zpzzpZquaVv4BAdXfzNbuba7DAXV32d1sTrUh5wcnW after the timestamp of its most recent incoming transaction. Include the amount transferred (in MOBILE), transaction signature, and timestamp.|47iK9ScKkX2ugXXZfwafbTJF8wJmfsduKF8XApNtSmhfVQ35N964WnH9YSYVRD9Pv1WpBJDhF27rmhsSwrJSf5AH
+OpenAIDataOnlyV2|Get unique wallet address that participated in the most number of MOBILE token transactions (either sending or receiving, but with non-zero balance change) within the 1-hour window before the last transaction. Return the wallet address with transaction count.|4qGj88CX3McdTXEviEaqeP2pnZJxRTsZFWyU3Mrnbku4,56
+OpenAIDataOnlyV2|what is a wallet that had the highest turnaround (send and receive volume) of TRUMP token?|9d9mb8kooFfaD3SctgZtkxQypkshx6ezhbKio89ixyy2,32980792.784
+## OOM
+## OpenAIDataOnlyV2|find wallet that traded both MOBILE and TRUMP tokens and ranks #1 in traded MOBILE volume|3LkGTjNsF2zWc2ddBPHYyEJJZKqbdHJDgfjztxnjwL5R,1529019675.308
+
+# times out ?
+OpenAIDataOnlyV2|Find wallet which got most TRUMP tokens from zero, and then completely sold them within 1 hour before the last transaction?|3ADzk5YDP9sgorvPSs9YPxigJiSqhgddpwHwwPwmEFib
+
+## not good for test - non deterministic
+## OpenAIDataOnlyV2|Return the MOBILE token balance of wallet DpubG7CJX8zqgUwi7UM7mx9TKvJNz4r2XfP7cVE8pZLH 3 months ago from today. If a balance snapshot is unavailable for that date, compute it based on all transactions involving MOBILE up to that point.|
+## super tough
+## OpenAIDataOnlyV2|Identify wallet address that have the shortest average holding time for MOBILE tokens. For such wallet, calculate the average time between receiving and sending MOBILE tokens across all transactions. Include the wallet address, number of qualifying transfers, and average holding time in hours.|3GqseuG9Ek6Fdy8kKf1fJr6RFmdMtryiV5owQ2dQQibE
+## OpenAIDataOnlyV2|Return the number of distinct wallets that executed at least two consecutive transactions with identical MOBILE token amounts (rounded to 6 decimals) and a time difference of less than 10 minutes between them, within February.|210

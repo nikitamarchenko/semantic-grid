@@ -1,0 +1,41 @@
+FROM python:3.12-slim-bookworm
+
+# Install base system tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl gcc g++ build-essential ca-certificates clang \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+ADD https://astral.sh/uv/0.6.16/install.sh /uv-installer.sh
+RUN sh /uv-installer.sh && rm /uv-installer.sh
+ENV PATH="/root/.local/bin/:$PATH"
+
+WORKDIR /app
+
+# Copy only dependency files first (for build caching)
+COPY pyproject.toml uv.lock ./
+
+# Install venv dependencies once
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-install-project
+
+# Clean up venv (optional, but helps)
+RUN rm -rf .venv/include && \
+    find .venv -name '__pycache__' -exec rm -rf {} + && \
+    find .venv -name '*.so' -exec strip --strip-unneeded {} + || true
+
+# Now copy source code (AFTER venv)
+COPY . .
+
+# Avoid re-syncing dependencies!
+# DO NOT run uv sync again here
+
+# Runtime path
+ENV PYTHONPATH="/app/.venv/lib/python3.12/site-packages"
+ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+EXPOSE 8080
+# CMD ["./run.sh"]

@@ -1,0 +1,93 @@
+# manifest.yaml
+name: db-meta
+version: 1.0.0
+description: >
+  MCP server providing database/dialect-specific context, schema docs,
+  and canonical examples for downstream LLM flows.
+
+maintainer: "ApeGPT Team"
+license: MIT
+
+# Optional tags to help orchestrators choose context providers
+tags:
+  - database
+  - sql
+  - schema
+  - examples
+  - dialect
+  - prompt-bundle
+
+# Where to find resources in the system pack
+resources:
+  - id: prompt_instructions
+    path: resources/prompt_instructions.yaml
+    type: yaml
+    description: >
+      Instructions and guardrails for query generation in this dialect.
+      Includes style, safe patterns, and prohibited constructs.
+
+  - id: query_examples
+    path: resources/query_examples.yaml
+    type: yaml
+    description: >
+      Canonical, high-quality query examples for this database flavor.
+      Each entry links a natural-language request to a tested SQL query.
+
+  - id: schema_descriptions
+    path: resources/schema_descriptions.yaml
+    type: yaml
+    description: >
+      Documentation for tables, columns, relationships, and constraints.
+
+  - id: sql_dialect
+    path: resources/sql_dialect.yaml
+    type: yaml
+    description: >
+      DB flavor-specific instructions.
+
+# Optional extra domain-specific files
+  - id: dialect_capabilities
+    path: resources/dialect_capabilities.yaml
+    type: yaml
+    description: >
+      Machine-readable feature flags and quirks for this SQL dialect.
+
+# Declares overlay entrypoints — clients can override per environment/tenant
+overlays:
+  base_path: overlays
+  resources:
+    - prompt_instructions.yaml
+    - query_examples.yaml
+    - schema_descriptions.yaml
+    - sql_dialect.yaml
+
+# MCP service endpoints
+endpoints:
+  - name: prompt_items
+    description: >
+      Returns a structured prompt bundle containing all merged resources,
+      resolved overlays, and lineage hashes for the given profile key.
+    request:
+      params:
+        profile:
+          type: string
+          required: true
+          description: >
+            Profile key representing the database flavor and environment.
+    response:
+      type: object
+      properties:
+        profile: string
+        dialect: string
+        capabilities: object
+        instructions: array
+        schema_card: object
+        examples: array
+        lineage: object
+
+# Lineage & reproducibility
+lineage:
+  strategy: hash
+  include:
+    - resources/**
+    - overlays/**

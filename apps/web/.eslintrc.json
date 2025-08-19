@@ -1,0 +1,142 @@
+{
+  // Configuration for JavaScript files
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": ["airbnb", "airbnb-typescript", "prettier", "next/core-web-vitals"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 12,
+    "sourceType": "module",
+    "project": ["tsconfig.json"]
+  },
+  "ignorePatterns": ["*.config.js", "*.json", "types.gen.ts"],
+  "rules": {
+    "no-console": "off", // disable once logging is set up
+    "no-underscore-dangle": 0,
+    "linebreak-style": 0,
+    "no-shadow": "off",
+    "no-param-reassign": "off",
+    "import/prefer-default-export": "off", // Named export is easier to refactor automatically
+    "@typescript-eslint/no-unused-vars": [
+      "off",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+    "no-unused-vars": [
+      "off",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+    "import/extensions": [
+      "off",
+      "always",
+      {
+        "pattern": {
+          "js": "never",
+          "jsx": "never",
+          "ts": "never",
+          "tsx": "never"
+        }
+      }
+    ],
+    "radix": "off",
+    "no-plusplus": "off",
+    "react/function-component-definition": [
+      2,
+      {
+        "namedComponents": "arrow-function",
+        "unnamedComponents": "arrow-function"
+      }
+    ],
+    "react/jsx-no-constructed-context-values": "off"
+  },
+  "overrides": [
+    // Configuration for TypeScript files
+    {
+      "files": ["**/*.ts", "**/*.tsx"],
+      "plugins": ["@typescript-eslint", "unused-imports", "simple-import-sort"],
+      "extends": [
+        "airbnb-typescript",
+        // "plugin:@typescript-eslint/recommended",
+        // "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        "next/core-web-vitals",
+        "prettier"
+      ],
+      "parserOptions": {
+        "project": "./tsconfig.json"
+      },
+      "rules": {
+        "no-console": "warn", // TODO: setup logging and remove this rule
+        "react/destructuring-assignment": "off", // Vscode doesn't support automatically destructuring, it's a pain to add a new variable
+        "jsx-a11y/anchor-is-valid": "off", // Next.js use his own internal link system
+        "react/require-default-props": "off", // Allow non-defined react props as undefined
+        "react/jsx-props-no-spreading": "off", // _app.tsx uses spread operator and also, react-hook-form
+        "react-hooks/exhaustive-deps": "off", // Incorrectly report needed dependency with Next.js router
+        "@next/next/no-img-element": "off", // We are currently not using next/image because it isn't supported with SSG mode
+        "@typescript-eslint/comma-dangle": "off", // Avoid conflict rule between Eslint and Prettier
+        "@typescript-eslint/consistent-type-imports": "error", // Ensure `import type` is used when it's necessary
+        // Follow the same ordering as the official plugin `prettier-plugin-tailwindcss`
+        "simple-import-sort/imports": "error", // Import configuration for `eslint-plugin-simple-import-sort`
+        "simple-import-sort/exports": "error", // Export configuration for `eslint-plugin-simple-import-sort`
+        "unused-imports/no-unused-imports": "error",
+        "@typescript-eslint/no-shadow": "off",
+        "@typescript-eslint/no-unused-vars": [
+          "off",
+          {
+            "argsIgnorePattern": "^_",
+            "varsIgnorePattern": "^_",
+            "caughtErrorsIgnorePattern": "^_"
+          }
+        ],
+        "no-unused-vars": [
+          "off",
+          {
+            "argsIgnorePattern": "^_",
+            "varsIgnorePattern": "^_",
+            "caughtErrorsIgnorePattern": "^_"
+          }
+        ],
+        "import/extensions": [
+          "off",
+          "always",
+          {
+            "pattern": {
+              "jsx": "never",
+              "ts": "never",
+              "tsx": "never"
+            }
+          }
+        ]
+      }
+    },
+    // Configuration for testing
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "plugins": ["jest", "jest-formatting", "testing-library", "jest-dom"],
+      "extends": [
+        "plugin:jest/recommended",
+        "plugin:jest-formatting/recommended",
+        "plugin:testing-library/react",
+        "plugin:jest-dom/recommended"
+      ]
+    }
+  ],
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true
+      }
+    }
+  }
+}

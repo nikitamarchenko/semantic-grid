@@ -1,0 +1,461 @@
+[
+  {
+    "intent_name": "wallet_behavior_statistics",
+    "description": "Queries about wallet activity patterns, round numbers, large holders, or unusual statistics over time.",
+    "slots": [
+      {
+        "name": "token",
+        "type": "token",
+        "required": true,
+        "example_values": [
+          "MOBILE"
+        ]
+      },
+      {
+        "name": "time_range",
+        "type": "duration/timestamp",
+        "required": true,
+        "example_values": [
+          "last 7 days",
+          "past month"
+        ]
+      },
+      {
+        "name": "amount_modulo",
+        "type": "integer",
+        "required": false,
+        "example_values": [
+          "1000",
+          "10000"
+        ]
+      },
+      {
+        "name": "transaction_count_threshold",
+        "type": "integer",
+        "required": false,
+        "example_values": [
+          "5"
+        ]
+      },
+      {
+        "name": "wallet_balance_threshold",
+        "type": "integer",
+        "required": false,
+        "example_values": [
+          "1000000"
+        ]
+      }
+    ]
+  },
+  {
+    "intent_name": "wallet_token_volume_aggregation",
+    "description": "Aggregate volumes, averages, or spikes in token transfer activity.",
+    "slots": [
+      {
+        "name": "token",
+        "type": "token",
+        "required": true,
+        "example_values": [
+          "MOBILE"
+        ]
+      },
+      {
+        "name": "aggregation_type",
+        "type": "enum",
+        "required": true,
+        "example_values": [
+          "sum",
+          "average",
+          "max"
+        ]
+      },
+      {
+        "name": "time_range",
+        "type": "duration/timestamp",
+        "required": true,
+        "example_values": [
+          "past 6 hours",
+          "past year"
+        ]
+      },
+      {
+        "name": "group_by",
+        "type": "enum",
+        "required": false,
+        "example_values": [
+          "wallet",
+          "hour",
+          "day"
+        ]
+      },
+      {
+        "name": "limit",
+        "type": "integer",
+        "required": false,
+        "example_values": [
+          "10"
+        ]
+      }
+    ]
+  },
+  {
+    "intent_name": "wallet_interaction_patterns",
+    "description": "Questions that describe behavioral patterns or constraints in how wallets interact.",
+    "slots": [
+      {
+        "name": "token",
+        "type": "token",
+        "required": true,
+        "example_values": [
+          "MOBILE"
+        ]
+      },
+      {
+        "name": "min_unique_senders",
+        "type": "integer",
+        "required": false,
+        "example_values": [
+          "5"
+        ]
+      },
+      {
+        "name": "exclusive_recipient",
+        "type": "wallet",
+        "required": false,
+        "example_values": [
+          "<wallet_address>"
+        ]
+      },
+      {
+        "name": "time_range",
+        "type": "duration/timestamp",
+        "required": false,
+        "example_values": [
+          "last 30 minutes"
+        ]
+      },
+      {
+        "name": "transaction_type",
+        "type": "enum",
+        "required": false,
+        "example_values": [
+          "incoming",
+          "outgoing",
+          "both"
+        ]
+      }
+    ]
+  },
+  {
+    "intent_name": "wallet_transaction_history_lookup",
+    "description": "Direct questions about the transaction history or balance of a specific wallet.",
+    "slots": [
+      {
+        "name": "wallet",
+        "type": "wallet",
+        "required": true,
+        "example_values": [
+          "GbStuAV8Ph..."
+        ]
+      },
+      {
+        "name": "lookup_type",
+        "type": "enum",
+        "required": true,
+        "example_values": [
+          "first_transaction",
+          "last_transaction",
+          "balance_change"
+        ]
+      },
+      {
+        "name": "time_reference",
+        "type": "timestamp",
+        "required": false,
+        "example_values": [
+          "3 months ago",
+          "past week"
+        ]
+      },
+      {
+        "name": "token",
+        "type": "token",
+        "required": false,
+        "example_values": [
+          "MOBILE"
+        ]
+      }
+    ]
+  },
+  {
+    "intent_name": "wallet_activity_frequency",
+    "description": "Activity consistency, weekly/monthly engagement, or repeated behaviors over time.",
+    "slots": [
+      {
+        "name": "frequency_type",
+        "type": "enum",
+        "required": true,
+        "example_values": [
+          "daily",
+          "weekly",
+          "monthly"
+        ]
+      },
+      {
+        "name": "min_transactions",
+        "type": "integer",
+        "required": false,
+        "example_values": [
+          "1"
+        ]
+      },
+      {
+        "name": "time_range",
+        "type": "duration",
+        "required": true,
+        "example_values": [
+          "past 3 months",
+          "past day"
+        ]
+      },
+      {
+        "name": "token",
+        "type": "token",
+        "required": true,
+        "example_values": [
+          "MOBILE"
+        ]
+      },
+      {
+        "name": "wallet_type",
+        "type": "enum",
+        "required": false,
+        "example_values": [
+          "new_wallets",
+          "existing_wallets"
+        ]
+      }
+    ]
+  },
+  {
+    "intent_name": "wallet_anomaly_detection",
+    "description": "Identify wallets with sudden changes in activity, such as spikes or drop-offs.",
+    "slots": [
+      {
+        "name": "token",
+        "type": "token",
+        "required": true,
+        "example_values": [
+          "MOBILE"
+        ]
+      },
+      {
+        "name": "time_window",
+        "type": "duration",
+        "required": true,
+        "example_values": [
+          "past 48 hours"
+        ]
+      },
+      {
+        "name": "activity_change_threshold",
+        "type": "percentage",
+        "required": true,
+        "example_values": [
+          "200%",
+          "500%"
+        ]
+      },
+      {
+        "name": "activity_type",
+        "type": "enum",
+        "required": false,
+        "example_values": [
+          "transaction_frequency",
+          "volume"
+        ]
+      }
+    ]
+  },
+  {
+    "intent_name": "wallet_holding_duration_analysis",
+    "description": "Detect how long wallets hold tokens before moving them, or whether circular patterns exist.",
+    "slots": [
+      {
+        "name": "token",
+        "type": "token",
+        "required": true,
+        "example_values": [
+          "MOBILE"
+        ]
+      },
+      {
+        "name": "holding_threshold",
+        "type": "duration",
+        "required": false,
+        "example_values": [
+          "1 day",
+          "24 hours"
+        ]
+      },
+      {
+        "name": "pattern_type",
+        "type": "enum",
+        "required": false,
+        "example_values": [
+          "circular",
+          "short_holding"
+        ]
+      },
+      {
+        "name": "time_range",
+        "type": "duration",
+        "required": false,
+        "example_values": [
+          "past 12 hours",
+          "past 7 days"
+        ]
+      }
+    ]
+  },
+  {
+    "intent_name": "wallet_transaction_flow_behavior",
+    "description": "Capture nuanced flow behavior such as splitting, consolidating, or mirrored send/receive patterns.",
+    "slots": [
+      {
+        "name": "token",
+        "type": "token",
+        "required": true,
+        "example_values": [
+          "MOBILE"
+        ]
+      },
+      {
+        "name": "time_range",
+        "type": "duration",
+        "required": true,
+        "example_values": [
+          "past 24 hours"
+        ]
+      },
+      {
+        "name": "flow_type",
+        "type": "enum",
+        "required": true,
+        "example_values": [
+          "split",
+          "consolidate",
+          "mirror"
+        ]
+      },
+      {
+        "name": "min_transaction_size",
+        "type": "integer",
+        "required": false,
+        "example_values": [
+          "50000"
+        ]
+      },
+      {
+        "name": "min_repetitions",
+        "type": "integer",
+        "required": false,
+        "example_values": [
+          "2",
+          "5"
+        ]
+      }
+    ]
+  },
+  {
+    "intent_name": "transaction_statistics_summary",
+    "description": "Compute statistics such as median, average, or proportions for transactions over time.",
+    "slots": [
+      {
+        "name": "token",
+        "type": "token",
+        "required": true,
+        "example_values": [
+          "MOBILE"
+        ]
+      },
+      {
+        "name": "time_range",
+        "type": "duration",
+        "required": true,
+        "example_values": [
+          "past 24 hours",
+          "last hour"
+        ]
+      },
+      {
+        "name": "statistic_type",
+        "type": "enum",
+        "required": true,
+        "example_values": [
+          "average",
+          "median",
+          "proportion"
+        ]
+      },
+      {
+        "name": "value_threshold",
+        "type": "integer",
+        "required": false,
+        "example_values": [
+          "50000"
+        ]
+      },
+      {
+        "name": "compare_to_average",
+        "type": "boolean",
+        "required": false,
+        "example_values": [
+          "true",
+          "false"
+        ]
+      }
+    ]
+  },
+  {
+    "intent_name": "temporal_transaction_trends",
+    "description": "Analyze transaction volumes or frequencies by time of day or time-based grouping.",
+    "slots": [
+      {
+        "name": "token",
+        "type": "token",
+        "required": true,
+        "example_values": [
+          "MOBILE"
+        ]
+      },
+      {
+        "name": "time_granularity",
+        "type": "enum",
+        "required": true,
+        "example_values": [
+          "hour",
+          "day"
+        ]
+      },
+      {
+        "name": "time_range",
+        "type": "duration",
+        "required": true,
+        "example_values": [
+          "past 24 hours",
+          "past year"
+        ]
+      },
+      {
+        "name": "comparison_type",
+        "type": "enum",
+        "required": false,
+        "example_values": [
+          "previous_period",
+          "historical_average"
+        ]
+      }
+    ]
+  }
+]

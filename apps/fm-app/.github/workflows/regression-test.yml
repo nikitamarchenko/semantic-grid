@@ -1,0 +1,42 @@
+name: Run Regression Tests
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+  push:
+    branches:
+      - master  # or your main branch name
+
+jobs:
+  regression-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"  # match your project
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install project dependencies
+        working-directory: bulk_test
+        run: |
+          uv sync
+
+      - name: Run regression tests
+        working-directory: bulk_test
+        env:
+          CLIENT_ID: ${{ vars.CLIENT_ID }}
+          AUDIENCE: ${{ vars.AUDIENCE }}
+          GRANT_TYPE: ${{ vars.GRANT_TYPE }}
+          APP_URL: ${{ vars.APP_URL }}
+          AUTH_URL: ${{ vars.AUTH_URL }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+        run: |
+          # uv pip install .  # (optional, if your code is a proper Python package)
+          uv run run_list.py --src master_list.csv

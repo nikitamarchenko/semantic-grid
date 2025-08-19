@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dbmeta-app
+  namespace: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dbmeta-app
+  template:
+    metadata:
+      labels:
+        app: dbmeta-app
+    spec:
+      imagePullSecrets:
+       - name: gcr-sa-key
+      containers:
+        - name: dbmeta-app
+          imagePullPolicy: IfNotPresent
+          command: ["./run.sh"]
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: dbmeta-cfg
+            - secretRef:
+                name: dbmeta-app-sec
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dbmeta-etl
+  namespace: prod
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: dbmeta-etl
+          imagePullPolicy: IfNotPresent
+          command: [ "python", "/app/dbmeta_app/etl/load.py" ]
+          envFrom:
+            - configMapRef:
+                name: dbmeta-cfg
+            - secretRef:
+                name: dbmeta-app-sec
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dbmeta-svc
+  namespace: prod
+spec:
+  selector:
+    app: dbmeta-app
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dbmeta-cfg
+  namespace: prod
+  labels:
+    app: dbmeta-app
+data:
+  LOG_LEVEL: 'INFO'
+  ROOT_PATH: '/'
+  PORT: '8080'
+  DATABASE_WH_USER: 'wh_ro'
+  DATABASE_WH_PORT: '9000'
+  DATABASE_WH_PORT_NEW: '9000'
+  # DATABASE_WH_PORT_V2: '9000'
+  DATABASE_WH_PORT_V2: '9440'
+  DATABASE_WH_DB: 'wh'
+  DATABASE_WH_DB_NEW: 'new_wh'
+  DATABASE_WH_DB_V2: 'wh'
+  DATABASE_WH_PARAMS: '?max_execution_time=120'
+  DATABASE_WH_PARAMS_NEW: '?max_execution_time=120'
+  DATABASE_WH_PARAMS_V2: '?max_execution_time=120&secure=true&verify=false'
+  # DATABASE_WH_PARAMS_V2: '?max_execution_time=120'
+  SCHEMA_DESCRIPTIONS_FILE: './dbmeta_app/schema_descriptions.yaml'
+  QUERY_EXAMPLES_FILE: './dbmeta_app/query_examples.yaml'
+  PROMPT_INSTRUCTIONS_FILE: './dbmeta_app/prompt_instructions.yaml'
+  DATA_EXAMPLES: 'True'
+  VECTOR_DB_HOST: "milvus-svc"
+  VECTOR_DB_PORT: "19530"
+  VECTOR_DB_COLLECTION_NAME: "apegpt_prompts"
+  # VECTOR_DB_EMBEDDINGS: "all-MiniLM-L6-v2"
+  VECTOR_DB_EMBEDDINGS: "text-embedding-3-small"
+  VECTOR_DB_METRIC_TYPE: "L2"
+  # Choose IVF_FLAT, IVF_PQ, or HNSW as needed
+  VECTOR_DB_INDEX_TYPE: "HNSW"
+  VECTOR_DB_PARAMS: "{\"nprobe\": 15}"
+  ETL_FILE_NAME: "/app/dbmeta_app/query_examples.yaml"

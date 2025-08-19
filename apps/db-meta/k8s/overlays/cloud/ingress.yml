@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dbmeta-ingress
+  namespace: prod
+  annotations: {}
+spec:
+  ingressClassName: external-nginx
+  tls:
+    - hosts:
+        - api.apegpt.ai
+      secretName: api-apegpt-ai-tls
+  rules:
+    - host: api.apegpt.ai
+      http:
+        paths:
+          - path: /sse
+            pathType: Prefix
+            backend:
+              service:
+                name: dbmeta-svc
+                port:
+                  number: 8080
+          - path: /messages
+            pathType: Prefix
+            backend:
+              service:
+                name: dbmeta-svc
+                port:
+                  number: 8080
