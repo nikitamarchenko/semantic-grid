@@ -51,7 +51,7 @@ def _make_hashable(x: Any) -> Any:
 def _merge_lists(
     base: list, patch: list, strategy: str = "append", id_key: str | None = None
 ):
-    if strategy == "replace":
+    if strategy == "override":
         # full replacement
         return copy.deepcopy(patch)
 
@@ -417,7 +417,7 @@ def assemble_effective_tree(
       2) REPO_ROOT / "client-configs" / <client> / <env>     / "db-meta" / "overlays"
     Returns: { relative_path: bytes }
     """
-    packs_root = REPO_ROOT / "resources" / "dbmeta_app" / "system-pack"
+    packs_root = REPO_ROOT / "packages" / "resources" / "dbmeta_app" / "system-pack"
     if not packs_root.exists():
         raise FileNotFoundError(f"System-pack root not found: {packs_root}")
 
@@ -430,10 +430,11 @@ def assemble_effective_tree(
     overlay_dirs: List[pathlib.Path] = []
     if client:
         common_ov = (
-            REPO_ROOT / "client-configs" / client / "common" / "dbmeta_app" / "overlays"
+            REPO_ROOT / "packages" / "client-configs" / client / "common" / "dbmeta_app" / "overlays"
         )
         env_ov = (
             REPO_ROOT
+            / "packages"
             / "client-configs"
             / client
             / (env or "")
@@ -451,6 +452,7 @@ def assemble_effective_tree(
     if client:
         cand = (
             REPO_ROOT
+            / "packages"
             / "client-configs"
             / client
             / (env or "common")

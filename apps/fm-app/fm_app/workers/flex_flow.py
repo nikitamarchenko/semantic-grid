@@ -49,7 +49,7 @@ async def flex_flow(
         request_id=req.request_id, flow_name=ai_model.get_name() + "_flex"
     )
 
-    repo_root = pathlib.Path(__file__).resolve().parent.parent  # adjust depth
+    repo_root = pathlib.Path(__file__).resolve().parent.parent.parent.parent.parent  # adjust depth
     assembler = PromptAssembler(
         repo_root=repo_root,  # containing /prompts and /client-configs
         component="fm_app",

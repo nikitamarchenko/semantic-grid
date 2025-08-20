@@ -7,7 +7,7 @@ from dbmeta_app.prompt_assembler.prompt_packs import assemble_effective_tree, lo
 
 def get_sql_dialect_item(profile: str) -> PromptItem:
     settings = get_settings()
-    repo_root = pathlib.Path(__file__).parent.parent.resolve()
+    repo_root = pathlib.Path(__file__).parent.parent.parent.parent.parent.resolve()
     client = settings.client
     env = settings.env
     tree = assemble_effective_tree(repo_root, profile, client, env)

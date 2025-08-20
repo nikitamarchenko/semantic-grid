@@ -58,7 +58,7 @@ async def interactive_flow(
     )
 
     # Initialize for fm-app with client overlays
-    repo_root = pathlib.Path(__file__).resolve().parent.parent  # adjust depth
+    repo_root = pathlib.Path(__file__).resolve().parent.parent.parent.parent.parent  # adjust depth
     assembler = PromptAssembler(
         repo_root=repo_root,  # containing /prompts and /client-configs
         component="fm_app",

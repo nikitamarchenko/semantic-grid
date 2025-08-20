@@ -467,7 +467,7 @@ class PromptAssembler:
         self.client = client
         self.env = env
         self.system_pack = find_system_pack(
-            repo_root=self.repo_root / "prompts",  # <-- just the prompts root
+            repo_root=self.repo_root / "packages" / "resources",  # <-- just the prompts root
             component=component,
             version=system_version,  # None means latest
         )
@@ -644,7 +644,8 @@ async def try_mcp(req: Dict[str, Any]) -> None:
 if __name__ == "__main__":
 
     # Initialize for fm-app with client overlays
-    repo_root = pathlib.Path(__file__).resolve().parent.parent  # adjust depth
+    repo_root = pathlib.Path(__file__).resolve().parent.parent.parent.parent.parent  # adjust depth
+    print(repo_root)
     assembler = PromptAssembler(
         repo_root=repo_root,  # containing /prompts and /client-configs
         component="fm_app",

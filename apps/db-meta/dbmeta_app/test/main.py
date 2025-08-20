@@ -28,7 +28,7 @@ if __name__ == "__main__":
     # print("system_pack", system_pack)
     # print("overlay_dirs", overlay_dirs)
 
-    repo_root = pathlib.Path(__file__).parent.parent.resolve()
+    repo_root = pathlib.Path(__file__).parent.parent.parent.parent.parent.resolve()
     component = "dbmeta_app"
     client = "apegpt"
     env = "prod"

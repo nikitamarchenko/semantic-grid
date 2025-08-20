@@ -2,7 +2,7 @@
 # This file contains SQL dialect instructions for the dbmeta_app.
 version: 1.0.0
 description: SQL dialect instructions for dbmeta_app
-strategy: replace
+strategy: override
 profiles:
   wh_v2:
     - Generated SQL has to be compatible with ClickHouse SQL dialect. 
