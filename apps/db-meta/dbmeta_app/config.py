@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     client: Optional[str] = "apegpt"
     env: Optional[str] = "prod"
     default_profile: Optional[str] = "wh_v2"
+    packs_resources_dir: str = "/app/packages"
 
 
 @lru_cache()

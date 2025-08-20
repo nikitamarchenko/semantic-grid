@@ -311,7 +311,7 @@ def load_pack(pack_dir: pathlib.Path) -> PackRef:
 def find_system_pack(
     repo_root: pathlib.Path, component: str, version: Optional[str] = None
 ) -> PackRef:
-    base = repo_root / component / "system-pack"
+    base = repo_root / "resources" / component / "system-pack"
     if version:
         pack_dir = base / version
         if not pack_dir.exists():
@@ -417,7 +417,7 @@ def assemble_effective_tree(
       2) REPO_ROOT / "client-configs" / <client> / <env>     / "db-meta" / "overlays"
     Returns: { relative_path: bytes }
     """
-    packs_root = REPO_ROOT / "packages" / "resources" / "dbmeta_app" / "system-pack"
+    packs_root = REPO_ROOT / "resources" / "dbmeta_app" / "system-pack"
     if not packs_root.exists():
         raise FileNotFoundError(f"System-pack root not found: {packs_root}")
 
@@ -430,11 +430,10 @@ def assemble_effective_tree(
     overlay_dirs: List[pathlib.Path] = []
     if client:
         common_ov = (
-            REPO_ROOT / "packages" / "client-configs" / client / "common" / "dbmeta_app" / "overlays"
+            REPO_ROOT / "client-configs" / client / "common" / "dbmeta_app" / "overlays"
         )
         env_ov = (
             REPO_ROOT
-            / "packages"
             / "client-configs"
             / client
             / (env or "")
@@ -452,7 +451,6 @@ def assemble_effective_tree(
     if client:
         cand = (
             REPO_ROOT
-            / "packages"
             / "client-configs"
             / client
             / (env or "common")

@@ -255,7 +255,7 @@ async def ask_llm_for_plan(query: str, db_name: str) -> ExecutionPipeline:
         status=RequestStatus.in_process,  # fake
     )
     # Initialize for fm-app with client overlays
-    repo_root = pathlib.Path(__file__).resolve().parent.parent.parent.parent.parent  # adjust depth
+    repo_root = pathlib.Path(settings.packs_resources_dir)  # adjust depth
     assembler = PromptAssembler(
         repo_root=repo_root,  # containing /prompts and /client-configs
         component="fm_app",

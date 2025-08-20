@@ -1,5 +1,7 @@
 # settings.py (your parent file)
+import os
 from functools import lru_cache
+from pathlib import Path
 
 from dotenv import load_dotenv, find_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -65,6 +67,7 @@ class Settings(BaseSettings):
     client_id: str = "apegpt"
     env: str = "prod"
     system_version: str = "v1.0.0"
+    packs_resources_dir: str = "/app/packages"
 
 
 @lru_cache()

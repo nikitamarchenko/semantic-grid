@@ -42,7 +42,7 @@ def generate_schema_prompt(engine, settings, with_examples=False):
     """Generates a human-readable schema description merged with YAML descriptions,
     including examples."""
     inspector = inspect(engine)
-    repo_root = pathlib.Path(__file__).parent.parent.parent.parent.parent.resolve()
+    repo_root = pathlib.Path(settings.packs_resources_dir).resolve()
     client = settings.client
     env = settings.env
     profile = settings.default_profile
@@ -150,7 +150,7 @@ def get_db_schema() -> DbSchema:
     settings = get_settings()
     engine = get_db()
     inspector = inspect(engine)
-    repo_root = pathlib.Path(__file__).parent.parent.parent.parent.parent.resolve()
+    repo_root = pathlib.Path(settings.packs_resources_dir).resolve()
     client = settings.client
     env = settings.env
     profile = settings.default_profile
