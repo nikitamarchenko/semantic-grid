@@ -4,7 +4,7 @@ This document describes the high‑level architecture, core components, data flo
 
 ---
 
-## 1) Goals & Non‑Goals
+### 1. Goals & Non‑Goals
 
 **Goals**
 
@@ -20,7 +20,7 @@ This document describes the high‑level architecture, core components, data flo
 
 ---
 
-## 2) Component Overview
+### 2. Component Overview
 
 * **apps/fm-app (Flow Manager)**
 
@@ -51,7 +51,7 @@ This document describes the high‑level architecture, core components, data flo
 
 ---
 
-## 3) Architecture Diagram (Mermaid)
+### 3. Architecture Diagram (Mermaid)
 
 ```mermaid
 flowchart LR
@@ -90,7 +90,7 @@ flowchart LR
 
 ---
 
-## 4) Typical Request Flow
+### 4. Typical Request Flow
 
 1. **UI → fm‑app**: user submits a natural‑language request.
 2. **Packs**: fm‑app assembles the effective tree (system pack + client overlays), renders the current slot via Jinja.
@@ -102,7 +102,7 @@ flowchart LR
 8. **Execute**: fm‑app performs the DB call (or another MCP service) when validated.
 9. **Summarize**: final response assembled; lineage (prompt shas, files, MCP inputs/outputs) persisted.
 
-### Sequence Diagram (Mermaid)
+#### Sequence Diagram (Mermaid)
 
 ```mermaid
 sequenceDiagram
@@ -131,7 +131,7 @@ sequenceDiagram
 
 ---
 
-## 5) Prompt Packs & Overlays
+### 5. Prompt Packs & Overlays
 
 * **Directory roots**
 
@@ -159,7 +159,7 @@ sequenceDiagram
 
 ---
 
-## 6) MCP Surface (db-meta)
+### 6. MCP Surface (db-meta)
 
 Recommended tools:
 
@@ -171,7 +171,7 @@ Recommended tools:
 
 ---
 
-## 7) Policy & Control
+### 7. Policy & Control
 
 * **Controller owns decisions**: prompts *propose*, fm‑app *decides* (state machine / graph).
 * **ValidationPolicy** gates execution: e.g., forbid full table scans, cap estimated runtime, require LIMIT, etc.
@@ -179,7 +179,7 @@ Recommended tools:
 
 ---
 
-## 8) Deployment Topology
+### 8. Deployment Topology
 
 * **Local dev**: Bun + Turbo for orchestration; fm‑app & db‑meta run via `uv` inside `apps/*`.
 * **Containers**: each app containerized; packs/overlays mounted read‑only.
@@ -187,7 +187,7 @@ Recommended tools:
 
 ---
 
-## 9) Observability & Lineage
+### 9. Observability & Lineage
 
 * Structured logs with run IDs, slot, step, and timings.
 * Persist lineage: system pack version/hash, overlay hashes, rendered prompt hash, MCP input/output hashes.
@@ -195,7 +195,7 @@ Recommended tools:
 
 ---
 
-## 10) Security & Compliance
+### 10. Security & Compliance
 
 * Principle of least privilege: MCPs access only required DBs; fm‑app never embeds secrets in prompts.
 * Validate all LLM‑produced SQL prior to execution.
@@ -203,7 +203,7 @@ Recommended tools:
 
 ---
 
-## 11) Extensibility
+### 11. Extensibility
 
 * Add a new slot by creating `slots/<name>/prompt.md` and declaring it in the system pack manifest.
 * Add a new MCP by registering a provider in fm‑app and referencing it in slot metadata (`requires.mcp`).
@@ -211,7 +211,7 @@ Recommended tools:
 
 ---
 
-## 12) Open Questions / Next Steps
+### 12. Open Questions / Next Steps
 
 * Define canonical `ValidationReport` schema across dialects.
 * Add result caching for `explain_analyze` keyed by SQL+profile.
