@@ -251,7 +251,7 @@ def load_pack(pack_dir: pathlib.Path) -> PackRef:
 def find_system_pack(
     repo_root: pathlib.Path, component: str, version: Optional[str] = None
 ) -> PackRef:
-    base = repo_root / component / "system-pack"
+    base = repo_root / "resources" / component / "system-pack"
     if version:
         pack_dir = base / version
         if not pack_dir.exists():
@@ -467,7 +467,7 @@ class PromptAssembler:
         self.client = client
         self.env = env
         self.system_pack = find_system_pack(
-            repo_root=self.repo_root / "prompts",  # <-- just the prompts root
+            repo_root=self.repo_root,  # <-- just the prompts root
             component=component,
             version=system_version,  # None means latest
         )
@@ -644,7 +644,8 @@ async def try_mcp(req: Dict[str, Any]) -> None:
 if __name__ == "__main__":
 
     # Initialize for fm-app with client overlays
-    repo_root = pathlib.Path(__file__).resolve().parent.parent  # adjust depth
+    repo_root = pathlib.Path(__file__).resolve().parent.parent.parent.parent.parent  # adjust depth
+    print(repo_root)
     assembler = PromptAssembler(
         repo_root=repo_root,  # containing /prompts and /client-configs
         component="fm_app",

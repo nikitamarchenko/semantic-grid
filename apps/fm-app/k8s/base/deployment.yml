@@ -126,3 +126,4 @@ data:
   DATABASE_WH_PARAMS: '?max_execution_time=120'
   DEEPSEEK_AI_API_URL: 'https://api.deepseek.com/v1'
   GUEST_AUTH_ISSUER: 'https://apegpt.ai'
+  PACKS_RESOURCES_DIR: '/app/packages'

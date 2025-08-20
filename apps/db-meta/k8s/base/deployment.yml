@@ -97,3 +97,4 @@ data:
   VECTOR_DB_INDEX_TYPE: "HNSW"
   VECTOR_DB_PARAMS: "{\"nprobe\": 15}"
   ETL_FILE_NAME: "/app/dbmeta_app/query_examples.yaml"
+  PACKS_RESOURCES_DIR: '/app/packages'

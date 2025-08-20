@@ -51,7 +51,7 @@ def _make_hashable(x: Any) -> Any:
 def _merge_lists(
     base: list, patch: list, strategy: str = "append", id_key: str | None = None
 ):
-    if strategy == "replace":
+    if strategy == "override":
         # full replacement
         return copy.deepcopy(patch)
 
@@ -311,7 +311,7 @@ def load_pack(pack_dir: pathlib.Path) -> PackRef:
 def find_system_pack(
     repo_root: pathlib.Path, component: str, version: Optional[str] = None
 ) -> PackRef:
-    base = repo_root / component / "system-pack"
+    base = repo_root / "resources" / component / "system-pack"
     if version:
         pack_dir = base / version
         if not pack_dir.exists():

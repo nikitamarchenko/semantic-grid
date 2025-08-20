@@ -7,7 +7,7 @@ from dbmeta_app.prompt_assembler.prompt_packs import assemble_effective_tree, lo
 
 def get_prompt_instructions_item(profile: str) -> PromptItem:
     settings = get_settings()
-    repo_root = pathlib.Path(__file__).parent.parent.resolve()
+    repo_root = pathlib.Path(settings.packs_resources_dir).resolve()
     client = settings.client
     env = settings.env
     tree = assemble_effective_tree(repo_root, profile, client, env)
@@ -31,7 +31,7 @@ def get_prompt_instructions_item(profile: str) -> PromptItem:
 def get_prompt_instructions(profile: str) -> list[str]:
     # Load the YAML-like structure (assuming it's stored in a file)
     settings = get_settings()
-    repo_root = pathlib.Path(__file__).parent.parent.resolve()
+    repo_root = pathlib.Path(settings.packs_resources_dir).resolve()
     client = settings.client
     env = settings.env
     tree = assemble_effective_tree(repo_root, profile, client, env)

@@ -42,7 +42,7 @@ def normalize_vector(vector):
 
 def load_query_examples():
     settings = get_settings()
-    repo_root = pathlib.Path(__file__).parent.parent.resolve()
+    repo_root = pathlib.Path(settings.packs_resources_dir).resolve()
     client = settings.client
     env = settings.env
     profile = settings.default_profile
