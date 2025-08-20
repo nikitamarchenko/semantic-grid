@@ -55,35 +55,37 @@ This document describes the high‑level architecture, core components, data flo
 
 ```mermaid
 flowchart LR
-  subgraph Web[Web (Next.js)]
-    UI[User Interface]
+  %% Fixed: link only to nodes, not subgraphs. Use simple labels and explicit nodes inside each subgraph.
+  subgraph Web["Web / Next.js"]
+    UI["UI"]
   end
 
-  subgraph FM[fm-app (FastAPI)]
-    Planner[Planner Slot]
-    ToolSel[Tool Selector Slot]
-    Codegen[SQL Codegen]
-    Validate[SQL Validate]
-    Execute[Execute]
-    Store[Lineage & Logs]
+  subgraph FM["fm-app / FastAPI"]
+    Plan["Planner"]
+    Sel["Tool Selector"]
+    Gen["SQL Codegen"]
+    Val["SQL Validate"]
+    Exec["Execute"]
+    Store["Lineage & Logs"]
   end
 
-  subgraph MCP1[db-meta (MCP)]
-    Bundle[get_prompt_bundle]
-    Explain[explain_analyze]
+  subgraph MCP["db-meta / MCP"]
+    Bundle["get_prompt_bundle"]
+    Explain["explain_analyze"]
   end
 
-  subgraph Packs[Packs]
-    System[packages/resources]
-    Client[packages/client-configs]
+  subgraph Packs["Packs"]
+    Sys["packages/resources"]
+    Cli["packages/client-configs"]
   end
 
-  UI -->|HTTP| FM
-  FM -->|load packs| System
-  FM -->|apply overlays| Client
-  Planner --> ToolSel --> Codegen --> Validate --> Execute --> Store
-  Validate -->|MCP tool| Explain
-  Planner -->|context| Bundle
+  %% Edges
+  UI -->|HTTP| Plan
+  Plan -.->|load packs| Sys
+  Plan -.->|apply overlays| Cli
+  Plan --> Sel --> Gen --> Val --> Exec --> Store
+  Val -->|MCP tool| Explain
+  Plan -->|context| Bundle
 ```
 
 ---
