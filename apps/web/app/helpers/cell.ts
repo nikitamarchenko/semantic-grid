@@ -33,6 +33,19 @@ export const isSolanaSignature = (sig: string) => {
   }
 };
 export const maybeDate = (value: string): Date | null => {
+  let possibleDate = null;
+  try {
+    const val = Date.parse(value);
+    if (isNaN(val)) {
+      return null;
+    }
+    possibleDate = new Date(val);
+    return possibleDate;
+  } catch (e) {
+    return null;
+  }
+
+  /*
   // Regex for 'YYYY-MM-DD HH:mm:ss'
   const dateTimeRegex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
 
@@ -63,5 +76,7 @@ export const maybeDate = (value: string): Date | null => {
     date.getSeconds() === seconds
     ? new Date(date)
     : null;
+
+   */
 };
 export const isNumber = (value: string = "") => !Number.isNaN(Number(value));
