@@ -38,7 +38,7 @@ import type {
   TResponseResult,
 } from "@/app/lib/types";
 
-import { StyledValue } from "./StyledValue";
+import { StyledValue } from "@/app/components/StyledValue";
 
 export const options: Record<
   string,

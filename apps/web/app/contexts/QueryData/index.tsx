@@ -23,8 +23,8 @@ import React, {
 
 import { useInfiniteQuery } from "@/app/hooks/useInfiniteQuery";
 import type { TColumn } from "@/app/lib/types";
+import {StyledValue} from "@/app/components/StyledValue";
 
-import { StyledValue } from "./StyledValue";
 
 export const options: Record<
   string,

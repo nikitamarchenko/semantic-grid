@@ -42,10 +42,10 @@ const intHints = [
 ];
 
 export const StyledValue = ({
-  value = "",
-  params,
-  successors,
-}: {
+                              value = "",
+                              params,
+                              successors,
+                            }: {
   value: string;
   params: any;
   successors?: { name: string; id: string; refs?: any; session_id?: string }[];
@@ -73,7 +73,7 @@ export const StyledValue = ({
     const isInt = intHints.some((hint) => params.field.includes(hint));
     return (
       <span
-        style={{ display: "inline-block", width: "100%", textAlign: "end" }}
+        style={{ display: "inline-block", width: "100%", textAlign: "start" }}
       >
         {isFloat &&
           !isInt &&
@@ -95,7 +95,7 @@ export const StyledValue = ({
       <Box
         sx={{
           display: "flex",
-          alignItems: "center",
+          alignItems: "left",
           "&:hover .MuiSvgIcon-root": {
             color: (theme) => theme.palette.primary.main,
           },
@@ -144,7 +144,7 @@ export const StyledValue = ({
       <Box
         sx={{
           display: "flex",
-          alignItems: "center",
+          alignItems: "left",
           "&:hover .MuiSvgIcon-root": {
             color: (theme) => theme.palette.primary.main,
           },
