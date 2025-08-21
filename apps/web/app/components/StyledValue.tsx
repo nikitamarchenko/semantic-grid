@@ -41,6 +41,15 @@ const intHints = [
   "num",
 ];
 
+function isDateOnlyUTC(d: Date) {
+  return (
+    d.getUTCHours() === 0 &&
+    d.getUTCMinutes() === 0 &&
+    d.getUTCSeconds() === 0 &&
+    d.getUTCMilliseconds() === 0
+  );
+}
+
 export const StyledValue = ({
                               value = "",
                               params,
@@ -62,7 +71,28 @@ export const StyledValue = ({
   // Check if the trimmed value is a date
   const maybeDateValue = maybeDate(trimmedValue);
   if (maybeDateValue) {
-    const formattedDate = format(maybeDateValue, "MM-dd-yy HH:mm:ss");
+    // const formattedDate = format(maybeDateValue, "MM-dd-yy HH:mm:ss");
+    const fullDateTimeOptions = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+      timeZone: "UTC"
+    } as Intl.DateTimeFormatOptions;
+    const dayOnlyOptions = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    } as Intl.DateTimeFormatOptions;
+
+    const fullDateTime = new Intl.DateTimeFormat([], fullDateTimeOptions);
+    const dayOnly = new Intl.DateTimeFormat([], dayOnlyOptions);
+    const formattedDate = isDateOnlyUTC(maybeDateValue) ? dayOnly.format(maybeDateValue) :
+      fullDateTime.format(maybeDateValue)
+    // const formattedDate = maybeDateValue.toLocaleString();
     return <span style={{ whiteSpace: "nowrap" }}>{formattedDate}</span>; // Convert to a date
   }
 
