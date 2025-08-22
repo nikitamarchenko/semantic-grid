@@ -2,7 +2,7 @@
 
 Semantic Grid is an open-source interface that lets users explore complex crypto datasets using natural language — no SQL or rigid filters required. Instead of pre-built dashboards with fixed views, users describe what they want to see. The system builds live, interactive tables in response.
 
-![Semantic Grid UI](docs/semantic-grid-UI.png)
+[![Semantic Grid UI](docs/semantic-grid-UI.png)](https://semanticgrid.ai)
 
 ## Built for Crypto Analytics Teams
 
