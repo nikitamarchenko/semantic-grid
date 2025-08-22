@@ -2,6 +2,8 @@
 
 Semantic Grid is an open-source interface that lets users explore complex crypto datasets using natural language — no SQL or rigid filters required. Instead of pre-built dashboards with fixed views, users describe what they want to see. The system builds live, interactive tables in response.
 
+![Semantic Grid UI](docs/semantic-grid-UI.png)
+
 ## Built for Crypto Analytics Teams
 
 Today’s dashboards are like storefronts: users must browse aisles of charts hoping to find what they need. But the number of ways people want to slice and explore on-chain data is endless. Semantic Grid puts users in control, making your data searchable, interactive, and composable — just like search engines revolutionized e-commerce. If you’re building:
@@ -30,15 +32,15 @@ Semantic Grid is the frontend layer that makes your data self-service and natura
 
 ## Try It Live
 
-*[Solana DEX Explorer (Demo)](https://beta.apegpt.ai)*  
+*[Solana DEX Explorer (Demo)](https://semanticgrid.ai)*  
 *[Watch Demo Video](https://youtu.be/5ySluirKR_M)*
 
 
 ## Getting Started
 
+- [Read the Docs](docs/systems-architecture.md)
+- [Join Discord](https://discord.gg/9bsR6sU7JQ)
 - Deploy using Helm (bring your own compute)
 - Plug in your foundation model (OpenAI, local models, etc.)
 - Connect to your dataset and describe it using metadata + sample queries
-
-*[Join the Discord](https://discord.gg/9bsR6sU7JQ)*
 
