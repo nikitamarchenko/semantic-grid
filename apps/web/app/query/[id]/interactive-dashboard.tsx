@@ -1,6 +1,15 @@
 "use client";
 
-import { Box, Container, Paper, Popover, Slide } from "@mui/material";
+import {
+  Box,
+  Container,
+  Paper,
+  Popover,
+  Slide,
+  Stack,
+  Tab,
+  Tabs,
+} from "@mui/material";
 import { useRouter } from "next/navigation";
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 
@@ -51,7 +60,7 @@ const CustomTabPanel = (props: TabPanelProps) => {
       aria-labelledby={`simple-tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ pb: 3 }}>{children}</Box>}
+      {value === index && <Box sx={{ pb: 0 }}>{children}</Box>}
     </Box>
   );
 };
@@ -77,8 +86,9 @@ export const InteractiveDashboard = ({
     scrollToBottom,
     requestId,
   } = useChatSession();
-  const { mode } = useContext(ThemeContext);
-  const { tab } = useContext(AppContext);
+  const { mode, isLarge } = useContext(ThemeContext);
+  const { tab, setTab } = useContext(AppContext);
+  const [panel, setPanel] = useState(0);
   const [leftWidth, setLeftWidth] = useLocalStorage<string>(
     `apegpt-left-width-${id}`,
     "",
@@ -284,209 +294,236 @@ export const InteractiveDashboard = ({
     }
   }, [pending]);
 
+  const onPanelChange = (event: React.SyntheticEvent, newValue: number) => {
+    setPanel(newValue);
+  };
+
   // we need to determine if the new query is an ancestor or a successor and set the slide direction accordingly
 
-  return (
-    <>
-      {/* ancestors?.length === 0 && <Box sx={{ mt: 10 }} /> */}
-      {/* padding top to avoid overlap with breadcrumbs */}
+  return isLarge ? (
+    <Box
+      ref={containerRef}
+      sx={{
+        height: hasData ? "calc(100vh - 50px)" : "auto", // let height expand naturally
+        marginTop: "50px", // padding to avoid overlap with app bar
+        display: "flex",
+        flexDirection: "row", // default direction
+        width: "100%",
+        position: "relative",
+        justifyContent: "center",
+        overflowX: "hidden",
+        overflowY: hasData ? "auto" : "visible", // disable internal scroll
+      }}
+    >
+      {/* Left pane - chat */}
       <Box
-        ref={containerRef}
         sx={{
-          height: hasData ? "calc(100vh - 50px)" : "auto", // let height expand naturally
-          marginTop: "50px", // padding to avoid overlap with app bar
+          width: hasData ? `${leftWidth}px` : "100%", // full width when standalone
+          maxWidth: hasData && maxLeftWidth ? `${maxLeftWidth}px` : "100%",
+          flexGrow: hasData ? 1 : 0,
+          flexBasis: hasData ? leftWidth : "auto",
+          overflow: "visible", // prevent clipping/scrolling
           display: "flex",
-          flexDirection: "row", // default direction
-          width: "100%",
+          flexDirection: "column",
           position: "relative",
-          justifyContent: "center",
-          overflowX: "hidden",
-          overflowY: hasData ? "auto" : "visible", // disable internal scroll
         }}
       >
-        {/* Left pane - chat */}
+        <Container
+          ref={contentRef}
+          maxWidth="md"
+          sx={{ position: "relative", "& .MuiContainer-root": { px: 0 } }}
+        >
+          <ChatContainer
+            id={id || ""}
+            hasParent={ancestors.length > 0}
+            pendingRequest={pendingRequest}
+            hasData={hasData}
+            metadata={metadata}
+          />
+        </Container>
+      </Box>
+
+      {/* Divider handle */}
+      {hasData && (
+        <Box
+          component="div"
+          // @ts-ignore
+          onMouseDown={handleMouseDown}
+          sx={{
+            width: "3px",
+            cursor: "col-resize",
+            backgroundColor: mode === "light" ? "grey.200" : "grey.900",
+            "&:hover": { backgroundColor: "grey.600" },
+          }}
+        />
+      )}
+
+      {/* Right panel -- table */}
+      {hasData && (
         <Box
           sx={{
-            width: hasData ? `${leftWidth}px` : "100%", // full width when standalone
-            maxWidth: hasData && maxLeftWidth ? `${maxLeftWidth}px` : "100%",
-            flexGrow: hasData ? 1 : 0,
-            flexBasis: hasData ? leftWidth : "auto",
-            overflow: "visible", // prevent clipping/scrolling
-            display: "flex",
-            flexDirection: "column",
-            position: "relative",
+            // marginTop: "80px", // padding to avoid overlap with app bar
+            overflow: "hidden",
+            width: `calc(100vw - ${leftWidth}px - 3px)`,
           }}
         >
           <Container
-            ref={contentRef}
-            maxWidth="md"
-            sx={{ position: "relative", "& .MuiContainer-root": { px: 0 } }}
+            sx={{ position: "relative", width: "100%", marginTop: 0 }}
+            maxWidth={false}
           >
-            <ChatContainer
-              id={id || ""}
-              hasParent={ancestors.length > 0}
-              pendingRequest={pendingRequest}
-              hasData={hasData}
-              metadata={metadata}
-            />
+            <Slide
+              direction="left"
+              in={hasData}
+              mountOnEnter
+              unmountOnExit
+              timeout={400} // customize speed
+            >
+              <Box>
+                <CustomTabPanel value={tab} index={0}>
+                  <Box
+                    sx={{
+                      height: "calc(100vh - 50px)",
+                      position: "relative",
+                    }}
+                    ref={gridRef}
+                  >
+                    <DataTable />
+                    <Popover
+                      open={!!contextMenu}
+                      onClose={handleClose}
+                      anchorReference="anchorPosition"
+                      anchorPosition={
+                        contextMenu !== null
+                          ? {
+                              top: contextMenu.mouseY,
+                              left: contextMenu.mouseX,
+                            }
+                          : undefined
+                      }
+                    >
+                      <Paper sx={{ width: 600, px: 3, pb: 3 }}>
+                        <QueryBox
+                          id={id!}
+                          formRef={formRef}
+                          inputRef={inputRef}
+                          handleClick={handleClick(inputRef, formRef, id!)}
+                          handleKeyDown={handleKeyDown(inputRef, formRef, id!)}
+                          handleChange={handleChange(inputRef)}
+                        />
+                      </Paper>
+                    </Popover>
+                  </Box>
+                </CustomTabPanel>
+                <CustomTabPanel value={tab} index={1}>
+                  <Box
+                    sx={{
+                      overflowY: "auto",
+                      maxHeight: "calc(100vh - 50px)",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        "& p": {
+                          fontFamily: "monospace",
+                          whiteSpace: "pre-wrap",
+                          color: "text.secondary",
+                        },
+                      }}
+                    >
+                      <HighlightedSQL
+                        code={mergedSql || "No SQL available for this query."}
+                      />
+                    </Box>
+                  </Box>
+                </CustomTabPanel>
+              </Box>
+            </Slide>
           </Container>
         </Box>
-
-        {/* Divider handle */}
-        {hasData && (
-          <Box
-            component="div"
-            // @ts-ignore
-            onMouseDown={handleMouseDown}
-            sx={{
-              width: "3px",
-              cursor: "col-resize",
-              backgroundColor: mode === "light" ? "grey.200" : "grey.900",
-              "&:hover": { backgroundColor: "grey.600" },
-            }}
-          />
-        )}
-
-        {/* Right panel -- table */}
-        {hasData && (
-          <Box
-            sx={{
-              // marginTop: "80px", // padding to avoid overlap with app bar
-              overflow: "hidden",
-              width: `calc(100vw - ${leftWidth}px - 3px)`,
-            }}
-          >
-            <Container
-              sx={{ position: "relative", width: "100%", marginTop: 0 }}
-              maxWidth={false}
-            >
-              <Slide
-                direction="left"
-                in={hasData}
-                mountOnEnter
-                unmountOnExit
-                timeout={400} // customize speed
+      )}
+    </Box>
+  ) : (
+    <Box
+      ref={containerRef}
+      sx={{
+        height: "calc(100vh)", // let height expand naturally
+        paddingTop: "50px", // padding to avoid overlap with app bar
+        width: "100%",
+        overflow: "hidden",
+      }}
+    >
+      <Stack direction="column">
+        <Tabs
+          centered
+          value={panel}
+          aria-label="chat and data tabs"
+          onChange={onPanelChange}
+        >
+          <Tab label="Chat" />
+          <Tab label="Grid" />
+          <Tab label="Query" />
+        </Tabs>
+        <Container
+          disableGutters
+          sx={{
+            padding: 0.5,
+            height: "calc(100vh)",
+            overflow: "auto",
+          }}
+        >
+          <CustomTabPanel value={panel} index={0}>
+            <Box>
+              <Container
+                disableGutters
+                ref={contentRef}
+                maxWidth="md"
+                sx={{ position: "relative", "& .MuiContainer-root": { px: 0 } }}
               >
-                <Box>
-                  {/* <Box
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Tooltip title="Select all rows">
-                      <IconButton
-                        onClick={() => {
-                          setActiveColumn(null);
-                          if (activeRows && activeRows.length > 1) {
-                            setActiveRows(undefined); // Clear active column on row selection
-                          } else {
-                            setActiveRows(rows);
-                            // TODO: upgrade to Pro to use multiple selection
-                            // setSelectionModel(rows.map((r: any) => r.id));
-                          }
-                        }}
-                      >
-                        <Adjust
-                          color={
-                            (activeRows?.length || 0) > 1 ? "primary" : "action"
-                          }
-                        />
-                      </IconButton>
-                    </Tooltip>
-                    <Tabs
-                      value={tab}
-                      onChange={onTabChange}
-                      aria-label="basic tabs example"
-                    >
-                      <Tab label="Data" />
-                      <Tab label="SQL" />
-                    </Tabs>
-                  </Box> */}
-                  <CustomTabPanel value={tab} index={0}>
-                    <Box
-                      sx={{
-                        height: "calc(100vh - 50px)",
-                        position: "relative",
-                      }}
-                      ref={gridRef}
-                      // onContextMenu={handleContextMenu}
-                      // onScroll={handleScroll}
-                    >
-                      <DataTable />
-                      <Popover
-                        open={!!contextMenu}
-                        onClose={handleClose}
-                        anchorReference="anchorPosition"
-                        anchorPosition={
-                          contextMenu !== null
-                            ? {
-                                top: contextMenu.mouseY,
-                                left: contextMenu.mouseX,
-                              }
-                            : undefined
-                        }
-                      >
-                        <Paper sx={{ width: 600, px: 3, pb: 3 }}>
-                          <QueryBox
-                            id={id!}
-                            formRef={formRef}
-                            inputRef={inputRef}
-                            handleClick={handleClick(inputRef, formRef, id!)}
-                            handleKeyDown={handleKeyDown(
-                              inputRef,
-                              formRef,
-                              id!,
-                            )}
-                            handleChange={handleChange(inputRef)}
-                          />
-                        </Paper>
-                      </Popover>
-                      {/* (pending || isLoading) && (
-                        <Box
-                          sx={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            bgcolor:
-                              mode === "light"
-                                ? "rgba(255, 255, 255, 0.5)"
-                                : "rgba(0, 0, 0, 0.5)",
-                          }}
-                        />
-                      ) */}
-                    </Box>
-                  </CustomTabPanel>
-                  <CustomTabPanel value={tab} index={1}>
-                    <Box
-                      sx={{
-                        overflowY: "auto",
-                        maxHeight: "calc(100vh - 50px)",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          "& p": {
-                            fontFamily: "monospace",
-                            whiteSpace: "pre-wrap",
-                            color: "text.secondary",
-                          },
-                        }}
-                      >
-                        <HighlightedSQL
-                          code={mergedSql || "No SQL available for this query."}
-                        />
-                      </Box>
-                    </Box>
-                  </CustomTabPanel>
-                </Box>
-              </Slide>
-            </Container>
-          </Box>
-        )}
-      </Box>
-    </>
+                <ChatContainer
+                  id={id || ""}
+                  hasParent={ancestors.length > 0}
+                  pendingRequest={pendingRequest}
+                  hasData={hasData}
+                  metadata={metadata}
+                />
+              </Container>
+            </Box>
+          </CustomTabPanel>
+          <CustomTabPanel value={panel} index={1}>
+            {hasData && (
+              <Box>
+                <Container disableGutters maxWidth={false}>
+                  <Box ref={gridRef}>
+                    <DataTable />
+                  </Box>
+                </Container>
+              </Box>
+            )}
+          </CustomTabPanel>
+          <CustomTabPanel value={panel} index={2}>
+            <Box
+              sx={{
+                width: "100%",
+                overflow: "auto",
+              }}
+            >
+              <Box
+                sx={{
+                  "& p": {
+                    fontFamily: "monospace",
+                    whiteSpace: "pre-wrap",
+                    color: "text.secondary",
+                  },
+                }}
+              >
+                <HighlightedSQL
+                  code={mergedSql || "No SQL available for this query."}
+                />
+              </Box>
+            </Box>
+          </CustomTabPanel>
+        </Container>
+      </Stack>
+    </Box>
   );
 };

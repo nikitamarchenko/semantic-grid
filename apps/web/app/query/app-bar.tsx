@@ -326,7 +326,7 @@ const ApplicationBar = ({ id, successors = [], ancestors = [] }: any) => {
                     variant="body2"
                     color={crumb.id === id ? "text.primary" : "text.disabled"}
                   >
-                    {trim(crumb.name) || "New query"}
+                    {trim(crumb.name, isLarge ? 32 : 20) || "New query"}
                   </Typography>
                 </a>
               </Link>
@@ -377,81 +377,22 @@ const ApplicationBar = ({ id, successors = [], ancestors = [] }: any) => {
           </Menu>
         </Stack>
         <Stack direction="row" sx={{ alignItems: "center" }} spacing={1}>
-          {/* <Tooltip title="Share this chat">
-            <IconButton
-              disableRipple
-              disableTouchRipple
-              disableFocusRipple
-              onClick={() => {}}
-              color="inherit"
-            >
-              <img
-                src="/icons/share.svg"
-                alt="share chat"
-                style={{ height: "24px" }}
-              />
-            </IconButton>
-          </Tooltip> */}
-          {/* <FormControl>
-            <Stack direction="row" spacing={1}>
-              <Select
-                disableUnderline
-                size="small"
-                variant="filled"
-                labelId="ai-model-select-label"
-                id="ai-model-select"
-                value={model.value}
-                onChange={handleModelChange}
-                sx={{
-                  minWidth: 60,
-                  bgcolor: "transparent",
-                  alignItems: "center",
-                  "& .MuiSelect-select": { py: 1 },
-                }}
+          {isLarge && (
+            <Tooltip title="Toggle table/SQL view">
+              <IconButton
+                onClick={toggleTab}
+                color="inherit"
+                sx={{ color: "text.secondary" }}
               >
-                {Object.values(Models).map((m) => (
-                  <MenuItem key={m.value} value={m.value}>
-                    {m.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </Stack>
-          </FormControl> */}
-          <Tooltip title="Toggle table/SQL view">
-            <IconButton
-              // disableRipple
-              // disableTouchRipple
-              // disableFocusRipple
-              onClick={toggleTab}
-              color="inherit"
-              sx={{ color: "text.secondary" }}
-            >
-              {tab === 0 ? <Code /> : <TableRows />}
-            </IconButton>
-          </Tooltip>
+                {tab !== 1 ? <Code /> : <TableRows />}
+              </IconButton>
+            </Tooltip>
+          )}
           <Tooltip title="Toggle light/dark mode">
-            <IconButton
-              // disableRipple
-              // disableTouchRipple
-              // disableFocusRipple
-              onClick={toggleTheme}
-              color="inherit"
-            >
+            <IconButton onClick={toggleTheme} color="inherit">
               <Box component={ToggleMode} sx={{ color: "text.secondary" }} />
             </IconButton>
           </Tooltip>
-          {/* <IconButton
-            disableRipple
-            disableTouchRipple
-            disableFocusRipple
-            onClick={handleClick}
-          >
-            {user ? (
-              <Avatar sx={{ width: 26, height: 26 }} src={user.picture || ""} />
-            ) : (
-              <AccountCircle />
-            )}
-          </IconButton> */}
           <Menu
             anchorEl={anchorEl}
             elevation={1}

@@ -122,7 +122,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [flow, setFlow] = useState<TModel>(defaultFlow);
   const [db, setDB] = useState<TModel>(defaultDB);
   const [navOpen, setNavOpen] = useState<boolean>(initState.navOpen);
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState(0); // Tabs: 0 - Table, 2 - SQL
   const [contextOpen, setContextOpen] = useState<boolean>(
     initState.contextOpen,
   );

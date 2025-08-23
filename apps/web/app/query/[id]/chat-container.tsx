@@ -260,7 +260,7 @@ export const ChatContainer = ({
   metadata?: any; // metadata for follow-ups
   hasData?: boolean; // added to handle no data case
 }) => {
-  const { mode } = useContext(ThemeContext);
+  const { mode, isLarge } = useContext(ThemeContext);
   const {
     pending,
     activeColumn,
@@ -272,7 +272,6 @@ export const ChatContainer = ({
     sects,
     scrollRef,
     setPromptVal,
-    lastMessages,
     isLoading,
     requestId,
     setRequestId,
@@ -493,9 +492,11 @@ export const ChatContainer = ({
         mt: hasData ? 0 : 0, // add margin-top only when no data
         pt: hasData ? 1 : 1, // add margin-top only when no data
         // mb: 2,
-        height: hasData
-          ? "calc(100vh - 50px)" // constrained when in split view
-          : "auto", // allow full window scroll
+        height: isLarge
+          ? hasData
+            ? "calc(100vh - 50px)" // constrained when in split view
+            : "auto"
+          : "calc(100vh - 92px)", // allow full window scroll
         overflow: "visible", // allow inner content to expand
         position: "relative",
         display: "flex",
