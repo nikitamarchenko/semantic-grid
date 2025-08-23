@@ -54,7 +54,7 @@ export const defaultDarkTheme: ThemeOptions = {
   },
 };
 
-export const overrides = (mode: string) =>
+export const overrides = (mode: string): ThemeOptions =>
   mode === "light"
     ? {
         palette: {
@@ -98,33 +98,34 @@ export const overrides = (mode: string) =>
               // boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
             },
           },
-        },
-        MuiDataGrid: {
-          styleOverrides: {
-            root: {
-              border: "none",
-              // fontFamily: ["Courier"],
-              fontFamily: [
-                monospaceFont.style.fontFamily,
-                "Courier",
-                "monospace",
-              ].join(","),
+          // @ts-ignore
+          MuiDataGrid: {
+            styleOverrides: {
+              root: {
+                border: "none",
+                // fontFamily: ["Courier"],
+                fontFamily: [
+                  monospaceFont.style.fontFamily,
+                  "Courier",
+                  "monospace",
+                ].join(","),
+              },
             },
           },
-        },
-        MuiRating: {
-          styleOverrides: {
-            icon: {
-              color: "#EF8626", // Default star color
-            },
-            iconFilled: {
-              color: "#EF8626", // Filled stars color
-            },
-            iconHover: {
-              color: "#FF9E42", // Hover color
-            },
-            iconEmpty: {
-              color: "#BF6C1E", // Empty stars color
+          MuiRating: {
+            styleOverrides: {
+              icon: {
+                color: "#EF8626", // Default star color
+              },
+              iconFilled: {
+                color: "#EF8626", // Filled stars color
+              },
+              iconHover: {
+                color: "#FF9E42", // Hover color
+              },
+              iconEmpty: {
+                color: "#BF6C1E", // Empty stars color
+              },
             },
           },
         },
@@ -150,7 +151,7 @@ export const overrides = (mode: string) =>
             default: "#121212",
           },
           action: {
-            background: "#3070F6",
+            disabledBackground: "#3070F6",
           },
         },
         components: {
@@ -162,6 +163,7 @@ export const overrides = (mode: string) =>
               },
             },
           },
+          // @ts-ignore
           MuiDataGrid: {
             styleOverrides: {
               root: {
