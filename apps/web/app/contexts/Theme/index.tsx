@@ -132,7 +132,6 @@ export const FlexibleThemeProvider = ({
       ),
     [mode],
   );
-  console.log("Theme", mode, theme);
 
   return (
     <ThemeContext.Provider
