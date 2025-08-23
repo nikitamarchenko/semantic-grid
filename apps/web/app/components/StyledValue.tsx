@@ -51,11 +51,11 @@ function isDateOnlyUTC(d: Date) {
 }
 
 export const StyledValue = ({
-                              columnType,
-                              value = "",
-                              params,
-                              successors,
-                            }: {
+  columnType,
+  value = "",
+  params,
+  successors,
+}: {
   columnType?: string;
   value: string;
   params: any;
@@ -84,7 +84,7 @@ export const StyledValue = ({
       minute: "2-digit",
       second: "2-digit",
       hour12: true,
-      timeZone: "UTC"
+      timeZone: "UTC",
     } as Intl.DateTimeFormatOptions;
     const dayOnlyOptions = {
       year: "numeric",
@@ -94,22 +94,25 @@ export const StyledValue = ({
 
     const fullDateTime = new Intl.DateTimeFormat([], fullDateTimeOptions);
     const dayOnly = new Intl.DateTimeFormat([], dayOnlyOptions);
-    const formattedDate = isDateOnlyUTC(maybeDateValue) ? dayOnly.format(maybeDateValue) :
-      fullDateTime.format(maybeDateValue)
+    const formattedDate = isDateOnlyUTC(maybeDateValue)
+      ? dayOnly.format(maybeDateValue)
+      : fullDateTime.format(maybeDateValue);
     // const formattedDate = maybeDateValue.toLocaleString();
     return <span style={{ whiteSpace: "nowrap" }}>{formattedDate}</span>; // Convert to a date
   }
 
   // Check if the trimmed value is a number
   const maybeNumber = Number(trimmedValue);
-  const columnTypeIsNumber = columnType?.startsWith("Float")
-    || columnType?.startsWith("Double")
-    || columnType?.startsWith("Int")
-    || columnType?.startsWith("UInt")
-  ;
+  const columnTypeIsNumber =
+    columnType?.startsWith("Float") ||
+    columnType?.startsWith("Double") ||
+    columnType?.startsWith("Int") ||
+    columnType?.startsWith("UInt");
   if (columnTypeIsNumber && !Number.isNaN(maybeNumber)) {
-    const isFloat = columnType?.startsWith("Float") || columnType?.startsWith("Double");
-    const isInt = columnType?.startsWith("Int") || columnType?.startsWith("UInt");
+    const isFloat =
+      columnType?.startsWith("Float") || columnType?.startsWith("Double");
+    const isInt =
+      columnType?.startsWith("Int") || columnType?.startsWith("UInt");
     return (
       <span
         style={{ display: "inline-block", width: "100%", textAlign: "start" }}
@@ -135,7 +138,7 @@ export const StyledValue = ({
       <Box
         sx={{
           display: "flex",
-          alignItems: "left",
+          alignItems: "center",
           "&:hover .MuiSvgIcon-root": {
             color: (theme) => theme.palette.primary.main,
           },
@@ -185,7 +188,7 @@ export const StyledValue = ({
       <Box
         sx={{
           display: "flex",
-          alignItems: "left",
+          alignItems: "center",
           "&:hover .MuiSvgIcon-root": {
             color: (theme) => theme.palette.primary.main,
           },
