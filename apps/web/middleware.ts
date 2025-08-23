@@ -41,21 +41,25 @@ export const config = {
 
 export async function middleware(req: NextRequest) {
   console.log("middleware", req.nextUrl.pathname);
+  const host = req.headers.get("host");
+  const schema = req.headers.get("x-forwarded-proto") || "http";
+  const freeRequests = Number(cookies().get("apegpt-trial")?.value || 0);
+  const guestToken = cookies().get("uid")?.value;
+  console.log("guestToken", !!guestToken, freeRequests);
+
   // make sure ephemeral requests are not impacted
   if (req.nextUrl.pathname.endsWith("/api/auth/guest")) {
     return NextResponse.next();
   }
 
   // anyone is allowed for home page and data queries
-  if (req.nextUrl.pathname === "/" || req.nextUrl.pathname.startsWith("/q/")) {
+  if (req.nextUrl.pathname.startsWith("/q/")) {
     return NextResponse.next();
   }
+  if (req.nextUrl.pathname === "/") {
+    return NextResponse.redirect(`${schema}://${host}/query`);
+  }
 
-  const host = req.headers.get("host");
-  const schema = req.headers.get("x-forwarded-proto") || "http";
-  const freeRequests = Number(cookies().get("apegpt-trial")?.value || 0);
-  const guestToken = cookies().get("uid")?.value;
-  console.log("guestToken", !!guestToken, freeRequests);
 
   /*
   let session;

@@ -51,10 +51,12 @@ function isDateOnlyUTC(d: Date) {
 }
 
 export const StyledValue = ({
+                              columnType,
                               value = "",
                               params,
                               successors,
                             }: {
+  columnType?: string;
   value: string;
   params: any;
   successors?: { name: string; id: string; refs?: any; session_id?: string }[];
@@ -70,7 +72,9 @@ export const StyledValue = ({
 
   // Check if the trimmed value is a date
   const maybeDateValue = maybeDate(trimmedValue);
-  if (maybeDateValue) {
+  if (columnType?.startsWith("DateTime") ?? maybeDateValue) {
+    if (!maybeDateValue) return <span>{value || ""}</span>;
+
     // const formattedDate = format(maybeDateValue, "MM-dd-yy HH:mm:ss");
     const fullDateTimeOptions = {
       year: "numeric",
@@ -98,9 +102,14 @@ export const StyledValue = ({
 
   // Check if the trimmed value is a number
   const maybeNumber = Number(trimmedValue);
-  if (trimmedValue && !Number.isNaN(maybeNumber)) {
-    const isFloat = floatHints.some((hint) => params.field.includes(hint));
-    const isInt = intHints.some((hint) => params.field.includes(hint));
+  const columnTypeIsNumber = columnType?.startsWith("Float")
+    || columnType?.startsWith("Double")
+    || columnType?.startsWith("Int")
+    || columnType?.startsWith("UInt")
+  ;
+  if (columnTypeIsNumber && !Number.isNaN(maybeNumber)) {
+    const isFloat = columnType?.startsWith("Float") || columnType?.startsWith("Double");
+    const isInt = columnType?.startsWith("Int") || columnType?.startsWith("UInt");
     return (
       <span
         style={{ display: "inline-block", width: "100%", textAlign: "start" }}
@@ -120,6 +129,7 @@ export const StyledValue = ({
       </span>
     );
   }
+
   if (isSolanaAddress(trimmedValue)) {
     return (
       <Box
@@ -169,6 +179,7 @@ export const StyledValue = ({
       </Box>
     );
   }
+
   if (isSolanaSignature(trimmedValue)) {
     return (
       <Box
@@ -201,5 +212,6 @@ export const StyledValue = ({
       </Box>
     );
   }
+
   return <span>{value || ""}</span>; // Return as-is if not a date or solana address or number
 };

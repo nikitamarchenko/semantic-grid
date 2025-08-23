@@ -23,8 +23,7 @@ import React, {
 
 import { useInfiniteQuery } from "@/app/hooks/useInfiniteQuery";
 import type { TColumn } from "@/app/lib/types";
-import {StyledValue} from "@/app/components/StyledValue";
-
+import { StyledValue } from "@/app/components/StyledValue";
 
 export const options: Record<
   string,
@@ -204,9 +203,9 @@ export const QueryDataProvider = ({
   };
 
   const gridColumns: GridColDef[] = useMemo(() => {
-    const base = query?.columns;
+    const columns = query?.columns;
     const userColumns =
-      base?.map((col: TColumn, idx: number) => ({
+      columns?.map((col: TColumn, idx: number) => ({
         field: col.id || `col_${idx}`,
         headerName: col.column_alias
           ?.replace(/_/g, " ")
@@ -219,7 +218,12 @@ export const QueryDataProvider = ({
             ? "highlight-column-header"
             : "",
         renderCell: (params: any) => (
-          <StyledValue value={params.value} params={params} successors={[]} />
+          <StyledValue
+            columnType={col.column_type?.replace("Nullable(", "")}
+            value={params.value}
+            params={params}
+            successors={[]}
+          />
         ),
         renderHeader: (params: any) => (
           <Tooltip

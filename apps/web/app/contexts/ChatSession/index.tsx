@@ -592,9 +592,9 @@ export const ChatSessionProvider = ({
   };
 
   const gridColumns: GridColDef[] = useMemo(() => {
-    const base = query?.columns || metadata?.columns;
+    const columns = query?.columns || metadata?.columns;
     const userColumns =
-      base?.map((col: TColumn, idx: number) => ({
+      columns?.map((col: TColumn, idx: number) => ({
         field: col.id || `col_${idx}`,
         headerName: col.column_alias
           ?.replace(/_/g, " ")
@@ -608,6 +608,7 @@ export const ChatSessionProvider = ({
             : "",
         renderCell: (params: any) => (
           <StyledValue
+            columnType={col.column_type?.replace("Nullable(", "")}
             value={params.value}
             params={params}
             successors={successors}
