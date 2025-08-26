@@ -29,7 +29,15 @@ export const GET = async (req: NextRequest) => {
       { status: 401 },
     );
   }
-  const res = await verifyGuestJWT(token, req);
+  let res;
+  try {
+    res = await verifyGuestJWT(token, req);
+  } catch (err) {
+    return NextResponse.json(
+      { valid: false, message: "Invalid token" },
+      { status: 401 },
+    );
+  }
   if (res) {
     return NextResponse.json({ valid: true });
   }
