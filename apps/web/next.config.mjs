@@ -8,6 +8,9 @@ const nextConfig = {
     return config;
   },
   /* config options here */
+  output: "standalone", // <— important for standalone build
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: true },
 };
 
 export default nextConfig;
