@@ -1,24 +1,7 @@
 // import { getSession } from "@auth0/nextjs-auth0/edge";
-import * as jose from "jose";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-
-const JWKS_URL = "/.well-known/jwks.json";
-
-async function getJWKs(req: NextRequest) {
-  const host = req.headers.get("host");
-  const schema = req.headers.get("x-forwarded-proto") || "http";
-  const res = await fetch(`${schema}://${host}/${JWKS_URL}`);
-  const { keys } = await res.json();
-  return keys;
-}
-
-async function verifyGuestJWT(token: string, req: NextRequest) {
-  const jwks = await getJWKs(req);
-  const key = await jose.importJWK(jwks[0], "RS256");
-  return jose.jwtVerify(token, key);
-}
 
 export const config = {
   matcher: [
@@ -40,9 +23,9 @@ export const config = {
 };
 
 export async function middleware(req: NextRequest) {
-  console.log("middleware", req.nextUrl.pathname);
   const host = req.headers.get("host");
   const schema = req.headers.get("x-forwarded-proto") || "http";
+  console.log("middleware", schema, host, req.nextUrl.pathname);
   const freeRequests = Number(cookies().get("apegpt-trial")?.value || 0);
   const guestToken = cookies().get("uid")?.value;
   console.log("guestToken", !!guestToken, freeRequests);
@@ -56,10 +39,10 @@ export async function middleware(req: NextRequest) {
   if (req.nextUrl.pathname.startsWith("/q/")) {
     return NextResponse.next();
   }
+
   if (req.nextUrl.pathname === "/") {
     return NextResponse.redirect(`${schema}://${host}/query`);
   }
-
 
   /*
   let session;
@@ -106,13 +89,11 @@ export async function middleware(req: NextRequest) {
   // 3. we check if the user has free requests left
   const freeTierQuota = process.env.FREE_TIER_QUOTA || "0";
   if (freeRequests < Number(freeTierQuota)) {
-    await verifyGuestJWT(guestToken, req);
     console.log("has free requests left");
-    // const response = ;
     return NextResponse.next();
   }
 
   // 4. if the user is not authenticated, not a guest, and has no free requests left, we redirect them to the login page
-  console.log("No quote, redirecting to login", host);
+  console.log("No quota, redirecting to login", host);
   return NextResponse.redirect(`${schema}://${host}/api/auth/login`);
 }

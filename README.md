@@ -44,3 +44,22 @@ Semantic Grid is the frontend layer that makes your data self-service and natura
 - Plug in your foundation model (OpenAI, local models, etc.)
 - Connect to your dataset and describe it using metadata + sample queries
 
+# Building
+
+## fm-app
+
+```bash
+docker buildx build --platform linux/amd64 -f apps/fm-app/Dockerfile -t <your org repo>/fm_app:latest .
+```
+
+## db-meta
+
+```bash
+docker buildx build --platform linux/amd64 -f apps/db-meta/Dockerfile -t <your org repo>/dbmeta:latest .
+```
+
+## web (UI)
+
+```bash
+docker buildx build --file apps/web/Dockerfile -t <your org repo>/web:latest .
+ ```
