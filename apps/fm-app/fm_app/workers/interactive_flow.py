@@ -44,6 +44,7 @@ from fm_app.mcp_servers.mcp_async_providers import (
     DbRefAsyncProvider,
 )
 from fm_app.prompt_assembler.prompt_packs import PromptAssembler
+from fm_app.stopwatch import stopwatch
 
 
 async def interactive_flow(
@@ -51,6 +52,7 @@ async def interactive_flow(
 ):
     logger = structlog.wrap_logger(get_task_logger(__name__))
     flow_step = itertools.count(1)  # start from 1
+    print(">>> FLOW START", stopwatch.lap())
 
     settings = get_settings()
     structlog.contextvars.bind_contextvars(
@@ -58,7 +60,8 @@ async def interactive_flow(
     )
 
     # Initialize for fm-app with client overlays
-    repo_root = pathlib.Path(settings.packs_resources_dir).resolve()  # adjust depth
+    # repo_root = pathlib.Path(settings.packs_resources_dir).resolve()  # adjust depth
+    repo_root = pathlib.Path(settings.packs_resources_dir)  # adjust depth
     assembler = PromptAssembler(
         repo_root=repo_root,  # containing /prompts and /client-configs
         component="fm_app",
@@ -183,6 +186,7 @@ async def interactive_flow(
     )
 
     user_intent = None
+    print(">>> PRE INTENT", stopwatch.lap())
 
     try:
         llm_response = ai_model.get_structured(
@@ -200,6 +204,8 @@ async def interactive_flow(
         req.err = str(e)
         await update_request_status(RequestStatus.error, req.err, db, req.request_id)
         return req
+
+    print(">>> POST INTENT", stopwatch.lap())
 
     if ai_model.get_name() != "gemini":
         messages.append({"role": "assistant", "content": llm_response})
@@ -294,12 +300,16 @@ async def interactive_flow(
             "flow_step_num": next(flow_step),  # for logging purposes
         }
 
+        print(">>> PRE MCP", stopwatch.lap())
+
         slot = await assembler.render_async(
             "interactive_query",
             variables=interactive_query_vars,
             req_ctx=mcp_ctx,
             mcp_caps=db_meta_caps,
         )
+
+        print(">>> POST MCP", stopwatch.lap())
 
         query_llm_system_prompt = slot.prompt_text
 
@@ -326,6 +336,8 @@ async def interactive_flow(
                 ai_request=messages,
             )
 
+            print(">>> PRE QUERY", stopwatch.lap())
+
             try:
                 llm_response = ai_model.get_structured(messages, QueryMetadata)
 
@@ -342,6 +354,8 @@ async def interactive_flow(
                     RequestStatus.error, req.err, db, req.request_id
                 )
                 return req
+
+            print(">>> POST QUERY", stopwatch.lap())
 
             if ai_model.get_name() != "gemini":
                 messages.append(
@@ -367,7 +381,6 @@ async def interactive_flow(
             ):
                 llm_response.parents.append(request_session.parent)
 
-            print("new metadata", llm_response)
             new_metadata = llm_response.model_dump()
 
             await update_request_status(
@@ -382,13 +395,18 @@ async def interactive_flow(
                     extracted_sql=extracted_sql,
                 )
 
+                print(">>> PRE ANALYZE", stopwatch.lap())
+
                 analyzed = await db_meta_mcp_analyze_query(
                     req, extracted_sql, 5, settings, logger
                 )
 
+                print(">>> POST ANALYZE", stopwatch.lap())
+
                 if analyzed.get("explanation"):
                     explanation = analyzed.get("explanation")[0]
                     new_metadata.update({"explanation": explanation})
+
                 elif analyzed.get("error"):
                     err = analyzed.get("error")
                     await update_request_status(
@@ -427,9 +445,14 @@ async def interactive_flow(
                     # return req
 
                 # if we have a valid SQL, get the row count
+
+                print(">>> PRE ROW COUNT", stopwatch.lap())
+
                 try:
                     row_count = count_wh_request(extracted_sql, db_wh)
                     new_metadata.update({"row_count": row_count})
+
+                    print(">>> POST ROW COUNT", stopwatch.lap())
 
                     await update_query_metadata(
                         session_id=req.session_id,
@@ -538,6 +561,10 @@ async def interactive_flow(
                 metadata=new_metadata,
                 refs=req.refs,
             )
+
+            print(">>> DONE INTERACTIVE QUERY", stopwatch.lap())
+
+
             return req
 
         # if we reach here, it means we exhausted all attempts to generate valid SQL

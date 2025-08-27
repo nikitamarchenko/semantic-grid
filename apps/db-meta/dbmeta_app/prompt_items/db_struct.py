@@ -248,9 +248,7 @@ def query_preflight(query: str) -> PreflightResult:
             res = conn.execute(text(f"EXPLAIN ESTIMATE {query}"))
             columns = res.keys()
             rows = [dict(zip(columns, row)) for row in res.fetchall()]
-            print(f"preflight EXPLAIN: {rows}")
             return PreflightResult(explanation=rows)
 
         except Exception as e:
-            print(f"preflight error: {e}")
             return PreflightResult(error=f"SQL error: {str(e)}")

@@ -23,6 +23,7 @@ from fm_app.api.model import (
 )
 from fm_app.config import get_settings
 from fm_app.db.db import update_request, update_request_failure, add_request
+from fm_app.stopwatch import stopwatch
 from fm_app.workers.agent import close_agent, init_agent
 from fm_app.workers.data_only_flow import data_only_flow
 from fm_app.workers.db_session import get_db
@@ -320,6 +321,9 @@ async def _wrk_add_request(args):
                     flow_stage="done_with_request",
                     flow_step_num=10000,
                 )
+
+                print(">>> DONE", stopwatch.lap())
+
                 status = (
                     RequestStatus.done
                     if request.status != RequestStatus.error

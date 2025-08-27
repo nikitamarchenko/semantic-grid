@@ -39,7 +39,6 @@ async def get_prompts_set(
     )
     user_request = req.user_request
     db = req.db if req.db else settings.database_wh_db
-    print("db", db)
     response = PromptsSetModel(
         prompt_items=[
             get_schema_prompt_item(),
@@ -63,19 +62,12 @@ async def prompt_items(
     )
     user_request = req.user_request
     db = req.db if req.db else settings.database_wh_db
-    print("db", db)
     db_meta = f"""
         {get_schema_prompt_item().text}\n\n
         {get_query_example_prompt_item(query=user_request, db=db).text}\n\n
         {get_prompt_instructions_item(profile=db).text}
         {get_sql_dialect_item(profile=db).text}
     """
-    # print(db, "db_meta schema", get_schema_prompt_item(db=db).text)
-    print(
-        db,
-        "db_meta examples",
-        get_query_example_prompt_item(query=user_request, db=db).text,
-    )
     return db_meta
 
 
@@ -127,6 +119,5 @@ async def preflight_query(req: TestSqlModel) -> PreflightResult:
     Presence or absence of **error** field indicates if the query is invalid or not.
     """
     db = req.db or get_settings().database_wh_db
-    print("preflight", db)
     query = req.sql
     return query_preflight(query=query)
