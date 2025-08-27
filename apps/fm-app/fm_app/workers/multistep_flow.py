@@ -47,7 +47,8 @@ async def multistep_flow(
     flow_step = itertools.count(1)  # start from 1
 
     # Initialize for fm-app with client overlays
-    repo_root = pathlib.Path(__file__).resolve()  # adjust depth
+    # repo_root = pathlib.Path(__file__).resolve()  # adjust depth
+    repo_root = pathlib.Path(settings.packs_resources_dir)  # adjust depth
     assembler = PromptAssembler(
         repo_root=repo_root,  # containing /prompts and /client-configs
         component="fm_app",

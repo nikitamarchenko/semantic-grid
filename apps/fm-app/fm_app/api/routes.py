@@ -56,6 +56,7 @@ from fm_app.db.db import (
     update_request,
     get_queries,
 )
+from fm_app.stopwatch import stopwatch
 from fm_app.workers.worker import wrk_add_request
 
 token_auth_scheme = HTTPBearer()
@@ -205,6 +206,10 @@ async def create_request(
     (response, task_id) = await add_request(
         user_owner=user_owner, session_id=session_id, add_req=user_request, db=db
     )
+
+    stopwatch.reset()
+    print(">>> API CALL", stopwatch.lap())
+
     wrk_req = WorkerRequest(
         session_id=session_id,
         request_id=response.request_id,

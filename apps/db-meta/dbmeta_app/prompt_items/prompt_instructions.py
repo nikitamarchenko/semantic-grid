@@ -40,5 +40,4 @@ def get_prompt_instructions(profile: str) -> list[str]:
         profile
     ]
 
-    print("instructions", instructions)
     return instructions

@@ -382,10 +382,8 @@ def assemble_tree(
                 try:
                     base_doc = yaml.safe_load(tree[rel].decode("utf-8"))
                     ov_doc = yaml.safe_load(ap.read_text(encoding="utf-8"))
-                    print(base_doc, ov_doc)
                     if isinstance(base_doc, dict) and isinstance(ov_doc, dict):
                         merged = json_merge_patch(base_doc, ov_doc)
-                        print("M", merged)
                         tree[rel] = yaml.safe_dump(merged, sort_keys=False).encode(
                             "utf-8"
                         )

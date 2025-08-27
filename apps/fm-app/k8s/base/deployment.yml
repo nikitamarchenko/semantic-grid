@@ -112,9 +112,9 @@ data:
   IRL_SLOTS: 'http://irl-slots-svc:8080/'
   GOOGLE_PROJECT_ID: 'bustling-bot-438222-t8'
   # OPEN_AI_LLM_NAME: 'chatgpt-4o-latest'
-  # OPENAI_LLM_NAME: 'gpt-4.1-2025-04-14'
+  OPENAI_LLM_NAME: 'gpt-4.1-2025-04-14'
   # OPENAI_LLM_NAME: 'gpt-5-2025-08-07'
-  OPENAI_LLM_NAME: 'gpt-5-mini-2025-08-07'
+  # OPENAI_LLM_NAME: 'gpt-5-mini-2025-08-07'
   # default
   # GOOGLE_LLM_NAME: "gemini-2.0-flash"
   # not too good

@@ -33,5 +33,4 @@ def get_query_example_prompt_item(query: str, db: str) -> PromptItem:
 
 def get_query_examples(query: str, db: str) -> list[QueryExample]:
     res = get_hits(query, db)
-    print(f"examples: {res}")
     return res
