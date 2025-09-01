@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 
 const PUBLIC_KEY = process.env.JWT_PUBLIC_KEY!;
 
+export const dynamic = "force-dynamic";
+
 export const GET = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== "GET") return res.status(405).end();
 

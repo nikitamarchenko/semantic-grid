@@ -29,7 +29,6 @@ FROM base AS deps
 # pruned manifests (json/lock only)
 COPY --from=pruner /repo/out/json/ ./
 # support text or binary bun lock
-COPY --from=pruner /repo/out/bun.lockb* ./
 COPY --from=pruner /repo/out/bun.lock*  ./
 
 # Use BuildKit cache mounts to speed re-installs
@@ -57,7 +56,6 @@ RUN bunx turbo run build --filter="$APP_NAME"
 FROM base AS prod_deps
 # Install prod deps from the same pruned manifests/lock
 COPY --from=pruner /repo/out/json/ ./
-COPY --from=pruner /repo/out/bun.lockb* ./
 COPY --from=pruner /repo/out/bun.lock*  ./
 ENV BUN_INSTALL_DEV=false
 RUN --mount=type=cache,target=/root/.bun \
