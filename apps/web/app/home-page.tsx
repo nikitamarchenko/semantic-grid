@@ -1,19 +1,10 @@
 "use client";
 
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import {
-  Box,
-  Button,
-  Container,
-  Grid,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Container, Grid, Stack } from "@mui/material";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import AppBar from "@/app/app-bar";
 import DialogSlider from "@/app/chat/dialog";
 import { useTheme } from "@/app/contexts/Theme";
 
@@ -33,8 +24,8 @@ const HomePage = () => {
   }, [query]);
 
   return (
-    <Box sx={{ bgcolor: "black" }}>
-      <AppBar />
+    <Box sx={{ bgcolor: "white" }}>
+      {/* <AppBar /> */}
       <DialogSlider open={open} setOpen={setOpen} />
       {isLarge && (
         <Container
@@ -44,12 +35,6 @@ const HomePage = () => {
             height: "100vh",
           }}
         >
-          <Grid container sx={{ position: "absolute", top: 0, left: 0 }}>
-            <Grid item xs={12} md={9} />
-            <Grid item xs={12} md={3}>
-              <Paper sx={{ bgcolor: "#3c3a38", height: "100vh" }} />
-            </Grid>
-          </Grid>
           <Grid
             container
             sx={{ pt: "78px", width: "100%", height: "calc(100vh - 78px)" }}
@@ -57,7 +42,7 @@ const HomePage = () => {
             <Grid
               item
               xs={12}
-              md={7}
+              md={12}
               sx={{
                 display: "flex",
                 direction: "column",
@@ -68,23 +53,28 @@ const HomePage = () => {
               <Stack
                 direction="column"
                 spacing={3}
-                sx={{ maxWidth: 414, justifyContent: "left" }}
+                sx={
+                  {
+                    // maxWidth: 414,
+                    // justifyContent: "left"
+                  }
+                }
               >
                 <Box>
                   <img
-                    src="/apegpt-logo-inverted.svg"
-                    alt="apegpt logo"
-                    height="75px"
+                    src="/semantic_grid.png"
+                    alt="semantic grid logo"
+                    // height="75px"
                   />
                 </Box>
-                <Typography
+                {/* <Typography
                   color="white"
                   fontWeight={400}
                   fontSize="45px!important"
                   lineHeight="49px!important"
                 >
                   {SLOGAN}
-                </Typography>
+                </Typography> */}
                 <Stack direction="row" spacing={2}>
                   {/* <Button
                     disableRipple
@@ -96,13 +86,17 @@ const HomePage = () => {
                   >
                     Request Access
                   </Button> */}
-                  <Button href="/query" endIcon={<PlayArrowIcon />}>
+                  <Button
+                    href="/query"
+                    endIcon={<PlayArrowIcon />}
+                    color="inherit"
+                  >
                     Continue
                   </Button>
                 </Stack>
               </Stack>
             </Grid>
-            <Grid
+            {/* <Grid
               item
               xs={12}
               md={5}
@@ -124,18 +118,8 @@ const HomePage = () => {
                   allow="autoplay; encrypted-media"
                   allowFullScreen
                 />
-                {/* <video
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  controls={false}
-                  style={{ width: "100%", height: "100%" }}
-                  src="/video/apegpt_homepage_demo_v1.mp4"
-                /> */}
-                {/* <img src="/example-chat.svg" alt="example chat" width="100%" /> */}
               </Box>
-            </Grid>
+            </Grid> */}
           </Grid>
         </Container>
       )}
@@ -152,14 +136,15 @@ const HomePage = () => {
             spacing={6}
             sx={{ pt: 4, height: "100vh", justifyContent: "center" }}
           >
-            <Box>
+            <Box sx={{ maxWidth: "100%" }}>
               <img
-                src="/apegpt-logo-inverted.svg"
-                alt="apegpt logo"
-                height="60px"
+                width="100%"
+                src="/semantic_grid.png"
+                alt="semantic grid logo"
+                // height="60px"
               />
             </Box>
-            <Typography
+            {/* <Typography
               color="white"
               fontWeight={400}
               fontSize="24px!important"
@@ -167,12 +152,12 @@ const HomePage = () => {
             >
               Ask any question about Solana on-chain data and get instant,
               human-readable answers.
-            </Typography>
-            <Box sx={{}}>
+            </Typography> */}
+            {/* <Box sx={{}}>
               <img src="/example-chat.svg" alt="example chat" width="100%" />
-            </Box>
+            </Box> */}
             <Stack direction="row" spacing={2}>
-              <Button
+              {/* <Button
                 disableRipple
                 disableFocusRipple
                 disableTouchRipple
@@ -181,9 +166,9 @@ const HomePage = () => {
                 onClick={() => setOpen(true)}
               >
                 Request Access
-              </Button>
-              <Button href="/query" endIcon={<PlayArrowIcon />}>
-                Sign In
+              </Button> */}
+              <Button href="/query" endIcon={<PlayArrowIcon />} color="inherit">
+                Continue
               </Button>
             </Stack>
           </Stack>
