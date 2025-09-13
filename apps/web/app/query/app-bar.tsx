@@ -19,10 +19,10 @@ import {
   Typography,
 } from "@mui/material";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useContext, useEffect, useRef, useState } from "react";
 
-import { createSession } from "@/app/actions";
+import { createRequestFromQuery, createSession } from "@/app/actions";
 import type { TModel } from "@/app/contexts/App";
 import { AppContext, Models } from "@/app/contexts/App";
 import { ThemeContext } from "@/app/contexts/Theme";
@@ -89,6 +89,7 @@ const ConstantAppBar = styled(AppBar, {
 
 const ApplicationBar = ({ id, successors = [], ancestors = [] }: any) => {
   const router = useRouter();
+  const queryParams = useSearchParams();
   const { mode, setMode, isLarge } = useContext(ThemeContext);
   const {
     user,
@@ -204,6 +205,26 @@ const ApplicationBar = ({ id, successors = [], ancestors = [] }: any) => {
     }
   };
 
+  const onSessionFromQuery = async (queryId: string) => {
+    try {
+      const session = await createSession({
+        name: `from query`,
+        tags: "test",
+      });
+      await mutate();
+      if (session) {
+        console.log("new session from query", session.session_id);
+        await createRequestFromQuery({
+          sessionId: session.session_id,
+          queryId,
+        });
+        router.replace(`/query/${session.session_id}`);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
     if (
       !userIsLoading &&
@@ -220,13 +241,18 @@ const ApplicationBar = ({ id, successors = [], ancestors = [] }: any) => {
       // const current = chatHistory.find((s: TChat) => s.uid === currentId);
       // console.log("Current", currentId);
       if (!currentId) {
-        const latest = chatHistory?.[0];
-        if (latest) {
-          router.replace(`/query/${latest.uid}`);
+        if (queryParams.get("q")) {
+          console.log("Session from query", queryParams.get("q"));
+          onSessionFromQuery(queryParams.get("q")!);
         } else {
-          // new chat
-          console.log("new query", user);
-          onSetNewCurrentChat();
+          const latest = chatHistory?.[0];
+          if (latest) {
+            router.replace(`/query/${latest.uid}`);
+          } else {
+            // new chat
+            console.log("new query", user);
+            onSetNewCurrentChat();
+          }
         }
       }
     }

@@ -11,6 +11,7 @@ import {
   createUserRequestFromQuery,
   createUserSession,
   getAllUserRequestsForSession,
+  getQuery,
   getSingleUserRequest,
   getUserSessions,
   updateUserRequest,
@@ -158,3 +159,5 @@ export const getUserAuth = async () => {
   console.log("get auth");
   return getUserAuthSession().then((r) => r?.user);
 };
+
+export const getQueryById = async (id: string) => getQuery({ queryId: id });
