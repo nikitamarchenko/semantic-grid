@@ -81,7 +81,7 @@ export const GET = async (req: NextRequest) => {
     .setExpirationTime("365d")
     .sign(privateKey);
 
-  const response = NextResponse.redirect(`${schema}://${host}/query`);
+  const response = NextResponse.redirect(`${schema}://${host}/`);
   response.cookies.set("uid", jwt, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
