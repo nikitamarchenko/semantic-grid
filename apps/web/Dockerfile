@@ -69,9 +69,13 @@ FROM node:20-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+ ca-certificates  \
+ && rm -rf /var/lib/apt/lists/*
+
 # Non-root user
-RUN useradd -m nextjs && chown -R nextjs:nextjs /app
-USER nextjs
+# RUN useradd -m nextjs && chown -R nextjs:nextjs /app
+# USER nextjs
 
 # 1) prod node_modules so require('next') works
 COPY --from=prod_deps /repo/node_modules /app/node_modules
