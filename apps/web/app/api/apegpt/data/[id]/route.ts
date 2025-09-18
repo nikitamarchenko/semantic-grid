@@ -35,7 +35,7 @@ export const GET = async (
   const upstream = await fetch(url.toString(), {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${token.accessToken}`,
+      // Authorization: `Bearer ${token.accessToken}`,
       ...(ifNoneMatch ? { "If-None-Match": ifNoneMatch } : {}),
       // If your origin varies by Accept-Encoding, keep it default; no need to set here.
     },
@@ -58,7 +58,7 @@ export const GET = async (
   h.set("Content-Type", ct);
 
   // Optional: expose ETag to client JS (not strictly needed for SWR)
-  // h.set("Access-Control-Expose-Headers", "ETag, Cache-Control");
+  h.set("Access-Control-Expose-Headers", "ETag, Cache-Control");
 
   // 6) If origin says 304, forward 304 with no body
   if (upstream.status === 304) {
