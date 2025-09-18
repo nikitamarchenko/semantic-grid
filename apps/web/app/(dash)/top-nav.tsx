@@ -1,6 +1,6 @@
 import { getDashboards } from "@/app/lib/appApi";
 
-import TopNavClient from "./components/TopNavClient";
+import TopNavClient from "../components/TopNavClient";
 
 // Optional caching: choose one based on your data
 // export const revalidate = 300;         // ISR every 5 min

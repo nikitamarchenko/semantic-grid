@@ -32,7 +32,7 @@ const dashboards: Dashboard[] = [
     id: "1",
     name: "Home",
     slug: "/",
-    description: "Solana DEX Activity At a Glance.",
+    description: "Solana DEX Activity At a Glance",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -40,7 +40,7 @@ const dashboards: Dashboard[] = [
     id: "2",
     name: "Tokens",
     slug: "/tokens",
-    description: "Most Performing Tokens and Market Trends.",
+    description: "Most Performing Tokens and Market Trends",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -48,7 +48,7 @@ const dashboards: Dashboard[] = [
     id: "3",
     name: "Trends",
     slug: "/trends",
-    description: "What's Hot On The Market Today.",
+    description: "What's Hot On The Market Today",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -64,7 +64,7 @@ const dashboards: Dashboard[] = [
     id: "99999",
     name: "User",
     slug: "/user",
-    description: "Your Personal Dashboard.",
+    description: "Your Personal Solana Dashboard",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -82,7 +82,15 @@ const queries: Query[] = [
     id: "q2",
     // queryId: "a6bf97ff-4d8c-48f2-9c2a-ecf90e06dcf5",
     queryId: "82603d68-9f16-4752-a5b0-84c9bd079a34",
-    description: "Top 20 Trading Tokens",
+    description: "Top 20 Trading Tokens, 24H",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "q21",
+    queryId: "a6bf97ff-4d8c-48f2-9c2a-ecf90e06dcf5",
+    // queryId: "82603d68-9f16-4752-a5b0-84c9bd079a34",
+    description: "Top 20 Trading Tokens, 7D",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -200,6 +208,16 @@ const dashboardItems: DashboardItem[] = [
     id: "di2",
     dashboardId: "2",
     queryId: "q2",
+    name: "Top 20 Traded Tokens, 24H",
+    description: "Top 20 Traded Tokens, 24H",
+    type: "table",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "di21",
+    dashboardId: "2",
+    queryId: "q21",
     name: "Top 20 Traded Tokens, 7D",
     description: "Top 20 Traded Tokens, 7D",
     type: "table",
@@ -318,4 +336,14 @@ export const getDashboardData = async (id: string) => {
   }));
 
   return Promise.resolve(dashboard);
+};
+
+export const getDashboardItemData = async (id: string) => {
+  const item = dashboardItems.find((d) => d.id === id);
+  if (!item) return Promise.reject(new Error(`Dashboard not found: ${id}`));
+
+  return Promise.resolve({
+    ...item,
+    query: queries.find((q) => q.id === item.queryId) || null,
+  });
 };

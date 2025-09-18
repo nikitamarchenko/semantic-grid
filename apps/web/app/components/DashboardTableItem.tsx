@@ -69,8 +69,6 @@ export const DashboardTableItem = ({ queryId }: { queryId: string }) => {
     offset: 0,
   });
 
-  console.log("data", data);
-
   const gridColumns: GridColDef[] = useMemo(() => {
     if (!query) return [];
 
@@ -95,8 +93,6 @@ export const DashboardTableItem = ({ queryId }: { queryId: string }) => {
       })),
     [data, gridColumns],
   );
-
-  console.log("rows", rows);
 
   return (
     <DataGrid

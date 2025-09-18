@@ -9,7 +9,6 @@ import React from "react";
 import MuiXLicense from "@/app/components/MuiLicense";
 import { FlexibleThemeProvider } from "@/app/contexts/Theme";
 import SWRProvider from "@/app/swr-provider";
-import TopNav from "@/app/top-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +38,6 @@ const RootLayout = ({ children }: { children: React.ReactElement }) => (
         <FlexibleThemeProvider>
           <UserProvider>
             <SWRProvider>
-              <TopNav />
               {children}
               <MuiXLicense />
             </SWRProvider>

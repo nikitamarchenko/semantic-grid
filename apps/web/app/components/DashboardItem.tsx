@@ -13,12 +13,14 @@ import { DashboardChartItem } from "@/app/components/DashboardChartItem";
 import { DashboardTableItem } from "@/app/components/DashboardTableItem";
 
 const DashboardCard = ({
+  id,
   title,
   href,
   type,
   subtype,
   queryId,
 }: {
+  id: string;
   title: string;
   queryId?: string;
   href?: string;

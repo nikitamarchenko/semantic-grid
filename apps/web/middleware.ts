@@ -41,6 +41,7 @@ export async function middleware(req: NextRequest) {
   }
 
   if (req.nextUrl.pathname === "/") {
+    return NextResponse.next();
     // return NextResponse.redirect(`${schema}://${host}/query`);
   }
 

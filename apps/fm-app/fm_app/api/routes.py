@@ -1,4 +1,6 @@
 import base64
+import hashlib
+import json
 import logging
 import os
 import uuid
@@ -7,7 +9,7 @@ from uuid import UUID
 # TODO: do we need these imports here?
 import plotly.graph_objects as go
 from fastapi import APIRouter, Depends, HTTPException, Query, Security
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.security import HTTPBearer
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -109,6 +111,35 @@ async def verify_any_token(
 ):
     return guest or user  # If guest verification fails, check regular user verification
 
+
+def sha256_str(s: str) -> str:
+    return hashlib.sha256(s.encode("utf-8")).hexdigest()
+
+
+def compute_sql_hash(sql: str) -> str:
+    return sha256_str(sql.strip().rstrip(";"))
+
+
+def compute_rows_fingerprint(rows: list[dict]) -> str:
+    """
+    Cheap, stable fingerprint over a subset of the data.
+    Avoid hashing the entire result for very large pages:
+      - take first & last row, total_rows count, and limit/offset
+    """
+    if not rows:
+        return sha256_str("empty")
+    first = rows[0]
+    last = rows[-1]
+    # use json dumps with sort_keys for stability
+    return sha256_str(
+        json.dumps({"first": first, "last": last}, sort_keys=True, default=str)
+    )
+
+
+def compute_etag(payload: dict) -> str:
+    """Stable weak ETag from JSON payload."""
+    raw = json.dumps(payload, sort_keys=True, default=str)
+    return f'W/"{hashlib.sha256(raw.encode()).hexdigest()}"'
 
 @api_router.post("/session")
 async def create_session(
@@ -693,7 +724,7 @@ async def get_query_data(
     sort_by: Optional[str] = None,
     sort_order: str = Query("asc", regex="^(asc|desc)$"),
     db: AsyncSession = Depends(get_db),
-) -> GetDataResponse:
+) -> Response:
     sql = ""
     current_view = View(sort_by=sort_by, sort_order=sort_order) if sort_by else None
 
@@ -812,14 +843,40 @@ async def get_query_data(
             else:
                 total_count = 0
 
-            return GetDataResponse(
+            payload = GetDataResponse(
                 query_id=query_id,
                 limit=limit,
                 offset=offset,
-                rows=[
-                    {k: v for k, v in row.items() if k != "total_count"} for row in rows
-                ],
+                rows=[{k: v for k, v in row.items() if k != "total_count"} for row in
+                      rows],
                 total_rows=total_count,
+            )
+
+            # Make a stable ETag
+            etag = compute_etag({
+                "query_id": str(query_id),
+                "limit": limit,
+                "offset": offset,
+                "total_rows": total_count,
+                # Fingerprint first/last row only to avoid huge hashes
+                "rows_fp": hashlib.sha256(
+                    json.dumps({
+                        "first": payload.rows[0] if payload.rows else None,
+                        "last": payload.rows[-1] if payload.rows else None,
+                    }, sort_keys=True, default=str).encode()
+                ).hexdigest(),
+            })
+
+            headers = {
+                "ETag": etag,
+                "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=120",
+                "Vary": "Authorization, Accept, Accept-Encoding",
+            }
+
+            return Response(
+                content=payload.model_dump_json(),  # v1: payload.json()
+                media_type="application/json",
+                headers=headers,
             )
 
         except Exception as e:

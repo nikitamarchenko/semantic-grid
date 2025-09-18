@@ -45,7 +45,7 @@ export const useQuery = ({
 }) => {
   // console.log("useQuery", id, limit, offset, sortBy, sortOrder);
   const sqlHash = sql ? btoa(sql) : "";
-  const { data, error, isLoading, mutate } = useSWR(
+  const { data, error, isLoading, isValidating, mutate } = useSWR(
     id && sql
       ? [`/api/apegpt/data`, id, limit, offset, sortBy, sortOrder, sqlHash]
       : null,
@@ -62,5 +62,5 @@ export const useQuery = ({
     },
   );
 
-  return { data, error, isLoading, mutate };
+  return { data, error, isLoading: isLoading || isValidating, mutate };
 };

@@ -22,31 +22,28 @@ const DashboardGrid = ({
   title: string;
   description?: string;
   items: (DashboardItem & DashboardItemMeta)[];
-}) => {
-  console.log("DashboardGrid items:", items);
-
-  return (
-    <Container maxWidth={false}>
-      {description && (
-        <Typography variant="h6" color="text.primary">
-          {description}
-        </Typography>
-      )}
-      <Grid container spacing={3}>
-        {items.map((it) => (
-          <Grid item key={it.id} xs={12} sm={6} md={4}>
-            <DashboardCard
-              title={it.title}
-              href={it.href}
-              type={it.type}
-              subtype={it.subtype}
-              queryId={it.queryId}
-            />
-          </Grid>
-        ))}
-      </Grid>
-    </Container>
-  );
-};
+}) => (
+  <Container maxWidth={false}>
+    {description && (
+      <Typography variant="h6" color="text.primary">
+        {description}
+      </Typography>
+    )}
+    <Grid container spacing={3}>
+      {items.map((it) => (
+        <Grid item key={it.id} xs={12} sm={6} md={4}>
+          <DashboardCard
+            id={it.id}
+            title={it.title}
+            href={it.href}
+            type={it.type}
+            subtype={it.subtype}
+            queryId={it.queryId}
+          />
+        </Grid>
+      ))}
+    </Grid>
+  </Container>
+);
 
 export default DashboardGrid;
