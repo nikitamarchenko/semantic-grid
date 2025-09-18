@@ -475,7 +475,7 @@ export const ChatContainer = ({
         // eslint-disable-next-line no-nested-ternary
         height: isLarge
           ? hasData
-            ? "calc(100vh - 50px)" // constrained when in split view
+            ? "calc(100vh - 64px)" // constrained when in split view
             : "auto"
           : "calc(100vh - 92px)", // allow full window scroll
         overflow: "visible", // allow inner content to expand

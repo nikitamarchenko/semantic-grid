@@ -295,8 +295,8 @@ export const InteractiveDashboard = ({
     <Box
       ref={containerRef}
       sx={{
-        height: hasData ? "calc(100vh - 50px)" : "auto", // let height expand naturally
-        marginTop: "50px", // padding to avoid overlap with app bar
+        height: hasData ? "calc(100vh - 64px)" : "auto", // let height expand naturally
+        // marginTop: "50px", // padding to avoid overlap with app bar
         display: "flex",
         flexDirection: "row", // default direction
         width: "100%",
@@ -373,7 +373,7 @@ export const InteractiveDashboard = ({
                 <CustomTabPanel value={tab} index={0}>
                   <Box
                     sx={{
-                      height: "calc(100vh - 50px)",
+                      height: "calc(100vh - 64px)",
                       position: "relative",
                     }}
                     ref={gridRef}
