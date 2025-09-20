@@ -52,9 +52,9 @@ const buildGridColumns = (query: TQuery) => {
   );
 };
 
-export const DashboardTableItem = ({ queryId }: { queryId: string }) => {
+export const DashboardTableItem = ({ queryUid }: { queryUid: string }) => {
   const { data: query, isLoading: queryObjectIsLoading } =
-    useQueryObject(queryId);
+    useQueryObject(queryUid);
 
   console.log("query", query);
 

@@ -1,18 +1,20 @@
 import type { ReactNode } from "react";
 
 import TopNav from "@/app/(dash)/top-nav";
+import { ensureSession } from "@/app/actions";
 
-const DashLayout = ({
+const DashLayout = async ({
   params: { id },
   children,
 }: {
   params: { id: string };
   children: ReactNode;
 }) => {
-  console.log("ItemLayout", id);
+  const { uid } = await ensureSession();
+
   return (
     <>
-      <TopNav />
+      <TopNav userId={uid} />
       {children}
     </>
   );

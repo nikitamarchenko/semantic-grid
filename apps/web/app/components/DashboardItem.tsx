@@ -11,6 +11,7 @@ import Link from "next/link";
 
 import { DashboardChartItem } from "@/app/components/DashboardChartItem";
 import { DashboardTableItem } from "@/app/components/DashboardTableItem";
+import { useQueryObject } from "@/app/hooks/useQueryObject";
 
 const DashboardCard = ({
   id,
@@ -18,15 +19,19 @@ const DashboardCard = ({
   href,
   type,
   subtype,
-  queryId,
+  queryUid,
 }: {
   id: string;
   title: string;
-  queryId?: string;
+  queryUid?: string;
   href?: string;
   type?: string;
   subtype?: string;
 }) => {
+  console.log("card", { id, title, href, type, subtype, queryUid });
+  const { data } = useQueryObject(queryUid!);
+  console.log("card query data", data);
+
   const inner = (
     <Card elevation={0} sx={{ minHeight: 400, minWidth: 300 }}>
       <CardActionArea component={href ? Link : "div"} href={href} sx={{ p: 2 }}>
@@ -34,7 +39,7 @@ const DashboardCard = ({
           <Stack spacing={1} justifyContent="center">
             {type !== "create" && (
               <Typography variant="body1" color="text.primary" gutterBottom>
-                {title}
+                {title || data?.summary}
               </Typography>
             )}
             {type === "create" && (
@@ -55,14 +60,14 @@ const DashboardCard = ({
                 <Typography variant="body1">Add New</Typography>
               </Stack>
             )}
-            {type === "chart" && queryId && (
+            {type === "chart" && queryUid && (
               <DashboardChartItem
-                queryId={queryId}
+                queryUid={queryUid}
                 chartType={subtype || "pie"}
               />
             )}
-            {type === "table" && queryId && (
-              <DashboardTableItem queryId={queryId} />
+            {type === "table" && queryUid && (
+              <DashboardTableItem queryUid={queryUid} />
             )}
           </Stack>
         </CardContent>

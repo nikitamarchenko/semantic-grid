@@ -26,3 +26,15 @@ export const hasFreeQuota = async () => {
   const usedQuota = cookies().get("apegpt-trial")?.value || 0;
   return Number(usedQuota) < Number(process.env.APEGPT_FREE_QUOTA || 10000000);
 };
+
+function secret() {
+  const s = process.env.SESSION_JWT_SECRET;
+  if (!s) throw new Error("SESSION_JWT_SECRET missing");
+  return new TextEncoder().encode(s);
+}
+
+export type SessionClaims = {
+  sub: string; // userId
+  typ: "visitor"; // or "user" later
+  v: 1; // schema version for rotation
+};

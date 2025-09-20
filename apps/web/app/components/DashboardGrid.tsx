@@ -2,7 +2,7 @@
 
 import { Container, Grid, Typography } from "@mui/material";
 
-import type { DashboardItem } from "@/app/lib/appApi";
+import type { DashboardItem } from "@/app/lib/dashboards";
 
 import DashboardCard from "./DashboardItem";
 
@@ -11,7 +11,7 @@ type DashboardItemMeta = {
   subtype?: string;
   key?: string;
   href?: string;
-  queryId?: string;
+  queryUid?: string;
 };
 
 const DashboardGrid = ({
@@ -19,7 +19,7 @@ const DashboardGrid = ({
   description,
   items,
 }: {
-  title: string;
+  title?: string;
   description?: string;
   items: (DashboardItem & DashboardItemMeta)[];
 }) => (
@@ -38,7 +38,7 @@ const DashboardGrid = ({
             href={it.href}
             type={it.type}
             subtype={it.subtype}
-            queryId={it.queryId}
+            queryUid={it.queryUid}
           />
         </Grid>
       ))}

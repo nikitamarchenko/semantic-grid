@@ -49,7 +49,7 @@ export const buildGridColumns = (query: TQuery) => {
   );
 };
 
-const timeKey = (t?: string) => t?.toLowerCase()?.includes("date");
+export const timeKey = (t?: string) => t?.toLowerCase()?.includes("date");
 
 export const normalizeDataSet = (rows: any[], gridColumns: GridColDef[]) =>
   // map each row element, analyzing all its elements according to gridColumns schema.

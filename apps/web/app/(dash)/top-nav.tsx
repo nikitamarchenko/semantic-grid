@@ -1,4 +1,4 @@
-import { getDashboards } from "@/app/lib/appApi";
+import { getDashboards } from "@/app/lib/dashboards";
 
 import TopNavClient from "../components/TopNavClient";
 
@@ -7,8 +7,9 @@ import TopNavClient from "../components/TopNavClient";
 // export const dynamic = "force-dynamic"; // always dynamic
 // export const dynamic = "force-static";  // fully static
 
-const TopNav = async () => {
-  const dashboards = await getDashboards();
+const TopNav = async ({ userId }: { userId?: string }) => {
+  const dashboards = await getDashboards(userId);
+  console.log("TopNav, userId", userId, "dashboards", dashboards);
   return <TopNavClient dashboards={dashboards} />;
 };
 

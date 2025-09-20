@@ -32,6 +32,7 @@ import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 
 import CopyQueryUrl from "@/app/components/CopyQueryUrl";
+import SaveQueryUrl from "@/app/components/SaveQueryUrl";
 import ShareQueryUrl from "@/app/components/ShareQueryUrl";
 import { useGridSession } from "@/app/contexts/GridSession";
 import { ThemeContext } from "@/app/contexts/Theme";
@@ -592,6 +593,7 @@ export const ChatContainer = ({
                                 <Box>
                                   <CopyQueryUrl section={section} />
                                   <ShareQueryUrl section={section} />
+                                  <SaveQueryUrl section={section} />
                                 </Box>
                               </Stack>
                             )}

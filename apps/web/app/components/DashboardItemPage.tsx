@@ -8,7 +8,7 @@ import {
   Paper,
   Typography,
 } from "@mui/material";
-import { LineChart } from "@mui/x-charts";
+import { LineChart, PieChart } from "@mui/x-charts";
 import type { GridColDef } from "@mui/x-data-grid";
 import { DataGrid } from "@mui/x-data-grid";
 import React, { useMemo } from "react";
@@ -20,6 +20,7 @@ import {
   buildPieChartSeries,
   gridDataSet,
   normalizeDataSet,
+  timeKey,
 } from "@/app/helpers/chart";
 import { useQuery } from "@/app/hooks/useQuery";
 import type { TQuery } from "@/app/lib/types";
@@ -28,14 +29,16 @@ export const DashboardItemPage = ({
   id,
   query,
   name,
+  itemType,
   chartType,
 }: {
   id: string;
   query?: TQuery;
   name?: string;
+  itemType?: string;
   chartType?: string;
 }) => {
-  console.log("page", query, chartType);
+  console.log("page", query, itemType, chartType);
   const {
     data,
     error: dataError,
@@ -57,6 +60,16 @@ export const DashboardItemPage = ({
 
     return [...userColumns];
   }, [query]);
+
+  const guessedChartType = useMemo(() => {
+    if (chartType) return chartType;
+    if (!chartType) {
+      // guess based on gridColumns, i.e. if type of the first column is date, then line chart
+      if (timeKey(gridColumns[0]?.type)) return "line";
+      return "pie"; // default
+    }
+    return null;
+  }, [chartType, gridColumns]);
 
   const pieSeries = useMemo(
     () => buildPieChartSeries(data?.rows || [], gridColumns),
@@ -111,36 +124,60 @@ export const DashboardItemPage = ({
           </Typography>
 
           <Box>
-            {view === "chart" && chartType === "line" && (
-              <>
-                <LineChart
-                  yAxis={[{ width: 100 }]}
-                  style={{ height: "80vh", width: "100%" }}
-                  xAxis={xAxis as any} // e.g. 'col_0'
-                  series={lineChartSeries}
-                  dataset={dataset}
-                >
-                  {/* enables tooltips for all series at hovered X */}
-                </LineChart>
-                {isLoading && (
-                  <Box
-                    position="absolute"
-                    top={0}
-                    left={0}
-                    right={0}
-                    bottom={0}
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    bgcolor={(theme) =>
-                      alpha(theme.palette.background.default, 0.6)
-                    }
+            {view === "chart" &&
+              (chartType === "line" || guessedChartType === "line") && (
+                <>
+                  <LineChart
+                    yAxis={[{ width: 100 }]}
+                    style={{ height: "80vh", width: "100%" }}
+                    xAxis={xAxis as any} // e.g. 'col_0'
+                    series={lineChartSeries}
+                    dataset={dataset}
                   >
-                    <CircularProgress />
-                  </Box>
-                )}
-              </>
-            )}
+                    {/* enables tooltips for all series at hovered X */}
+                  </LineChart>
+                  {isLoading && (
+                    <Box
+                      position="absolute"
+                      top={0}
+                      left={0}
+                      right={0}
+                      bottom={0}
+                      display="flex"
+                      justifyContent="center"
+                      alignItems="center"
+                      bgcolor={(theme) =>
+                        alpha(theme.palette.background.default, 0.6)
+                      }
+                    >
+                      <CircularProgress />
+                    </Box>
+                  )}
+                </>
+              )}
+            {view === "chart" &&
+              (chartType === "pie" || guessedChartType === "pie") && (
+                <>
+                  <PieChart series={pieSeries} width={200} height={200} />
+                  {isLoading && (
+                    <Box
+                      position="absolute"
+                      top={0}
+                      left={0}
+                      right={0}
+                      bottom={0}
+                      display="flex"
+                      justifyContent="center"
+                      alignItems="center"
+                      bgcolor={(theme) =>
+                        alpha(theme.palette.background.default, 0.6)
+                      }
+                    >
+                      <CircularProgress />
+                    </Box>
+                  )}
+                </>
+              )}
             {view === "grid" && (
               <DataGrid
                 density="compact"

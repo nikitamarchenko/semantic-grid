@@ -78,6 +78,7 @@ const ViewNavClient = ({
   const pathname = usePathname();
   const items = dashboards.filter((d) => d.slug !== "/");
   const { mode, setMode } = useContext(ThemeContext);
+  console.log("nav items", item, items);
 
   const toggleTheme = () => {
     const next = mode === "dark" ? "light" : "dark";
@@ -122,7 +123,7 @@ const ViewNavClient = ({
 
           <Button
             component={Link}
-            href={`/grid?q=${item?.query?.queryId}`}
+            href={`/grid?q=${item?.query?.queryUid}`}
             variant="contained"
             color="primary"
             sx={{ textTransform: "none", ml: 2 }}

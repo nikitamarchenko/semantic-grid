@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 
+import { ensureSession } from "@/app/actions";
 import ViewNavClient from "@/app/components/ViewNavClient";
 import { ItemViewProvider } from "@/app/contexts/ItemView";
-import { getDashboardItemData, getDashboards } from "@/app/lib/appApi";
+import { getDashboardItemData, getDashboards } from "@/app/lib/dashboards";
 
 const ItemLayout = async ({
   params: { id },
@@ -11,7 +12,8 @@ const ItemLayout = async ({
   params: { id: string };
   children: ReactNode;
 }) => {
-  const dashboards = await getDashboards();
+  const { uid } = await ensureSession();
+  const dashboards = await getDashboards(uid);
   const item = await getDashboardItemData(id);
 
   return (

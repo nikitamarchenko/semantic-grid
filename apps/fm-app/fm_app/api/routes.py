@@ -869,7 +869,7 @@ async def get_query_data(
 
             headers = {
                 "ETag": etag,
-                "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=120",
+                "Cache-Control": "public, max-age=0, s-maxage=600, stale-while-revalidate=1200",
                 "Vary": "Authorization, Accept, Accept-Encoding",
             }
 

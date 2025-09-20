@@ -24,7 +24,15 @@ type Dashboard = {
   slug: string;
 };
 
-const GridNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
+const GridNavClient = ({
+  dashboards,
+  uid,
+  dashboardId,
+}: {
+  dashboards: Dashboard[];
+  uid?: string;
+  dashboardId?: string;
+}) => {
   const router = useRouter();
   const queryParams = useSearchParams();
   const pathname = usePathname();
@@ -65,12 +73,34 @@ const GridNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
     }
   };
 
+  const onNewSession = async () => {
+    try {
+      const session = await createSession({
+        name: `new query`,
+        tags: "test",
+      });
+      await mutate();
+      if (session) {
+        router.replace(`/grid/${session.session_id}`);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
     if (queryParams.get("q")) {
       console.log("Session from query", queryParams.get("q"));
       onSessionFromQuery(queryParams.get("q")!);
+    } else if (pathname === "/grid") {
+      console.log("No query param");
+      onNewSession();
     }
   }, [queryParams]);
+
+  const onSaveClick = () => {
+    console.log("onSaveClick", dashboardId, uid);
+  };
 
   return (
     <AppBar position="relative" color="inherit" elevation={0}>
@@ -102,15 +132,16 @@ const GridNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
           {/* Spacer between primary nav and right-side controls */}
           <Box sx={{ flexGrow: 1 }} />
 
-          <Button
+          {/* <Button
             component={Link}
             href="#"
             variant="contained"
             color="primary"
             sx={{ textTransform: "none", ml: 2 }}
+            onClick={onSaveClick}
           >
             SAVE
-          </Button>
+          </Button> */}
 
           <Tooltip title="Toggle light/dark mode">
             <IconButton onClick={toggleTheme} color="inherit">

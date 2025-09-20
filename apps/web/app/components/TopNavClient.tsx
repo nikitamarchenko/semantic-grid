@@ -65,6 +65,16 @@ const TopNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
           {/* Spacer between primary nav and right-side controls */}
           <Box sx={{ flexGrow: 1 }} />
 
+          <Button
+            component={Link}
+            href="/grid"
+            variant="contained"
+            color="primary"
+            sx={{ textTransform: "none", ml: 2 }}
+          >
+            NEW
+          </Button>
+
           <Tooltip title="Toggle light/dark mode">
             <IconButton onClick={toggleTheme} color="inherit">
               <Box component={ToggleMode} sx={{ color: "text.secondary" }} />

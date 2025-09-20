@@ -26,6 +26,7 @@ export async function middleware(req: NextRequest) {
   const host = req.headers.get("host");
   const schema = req.headers.get("x-forwarded-proto") || "http";
   console.log("middleware", schema, host, req.nextUrl.pathname);
+
   const freeRequests = Number(cookies().get("apegpt-trial")?.value || 0);
   const guestToken = cookies().get("uid")?.value;
   console.log("guestToken", !!guestToken, freeRequests);
@@ -41,7 +42,7 @@ export async function middleware(req: NextRequest) {
   }
 
   if (req.nextUrl.pathname === "/") {
-    return NextResponse.next();
+    // return NextResponse.next();
     // return NextResponse.redirect(`${schema}://${host}/query`);
   }
 

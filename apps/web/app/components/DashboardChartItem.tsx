@@ -14,14 +14,15 @@ import { useQuery } from "@/app/hooks/useQuery";
 import { useQueryObject } from "@/app/hooks/useQueryObject";
 
 export const DashboardChartItem = ({
-  queryId,
+  queryUid,
   chartType,
 }: {
-  queryId: string;
+  queryUid: string;
   chartType: string;
 }) => {
+  console.log("DashboardChartItem", queryUid, chartType);
   const { data: query, isLoading: queryObjectIsLoading } =
-    useQueryObject(queryId);
+    useQueryObject(queryUid);
 
   const {
     data,

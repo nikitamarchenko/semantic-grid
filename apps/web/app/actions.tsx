@@ -1,10 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getUserAuthSession } from "@/app/lib/authUser";
 import { sendEmail } from "@/app/lib/awsSes";
+import {
+  attachQueryToDashboard,
+  ensureUserAndDashboard,
+} from "@/app/lib/dashboards";
 import {
   createLinkedUserSession,
   createUserRequest,
@@ -161,3 +166,28 @@ export const getUserAuth = async () => {
 };
 
 export const getQueryById = async (id: string) => getQuery({ queryId: id });
+
+// app/actions/ensure-session.ts
+
+export const ensureSession = async () => {
+  const sid = cookies().get("uid")?.value;
+  const { userId, dashboardId, uid } = await ensureUserAndDashboard({ sid });
+  console.log("ensuring session, sid:", userId, dashboardId);
+
+  return { uid, dashboardId };
+};
+
+export const addQueryToUserDashboard = async ({
+  queryUid,
+}: {
+  queryUid: string;
+}) => {
+  const { uid, dashboardId } = await ensureSession();
+  console.log("addQueryToUserDashboard", { uid, dashboardId, queryUid });
+  if (!dashboardId) throw new Error("No dashboardId");
+  if (!queryUid) throw new Error("No queryId");
+
+  await attachQueryToDashboard({ dashboardId, queryUid, itemType: "table" });
+
+  revalidatePath(`/user/${uid}`, "page");
+};

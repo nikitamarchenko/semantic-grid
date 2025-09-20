@@ -4,6 +4,9 @@ profiles:
   wh_v2:
     whitelist: false
     tables:
+      enriched_trades:
+        hidden: true
+
       account_token_balance:
         hidden: true
         description: |
