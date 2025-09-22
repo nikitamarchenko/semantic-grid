@@ -15,7 +15,6 @@ from pymilvus import (
 
 from dbmeta_app.config import get_settings
 from dbmeta_app.prompt_assembler.prompt_packs import assemble_effective_tree, load_yaml
-from dbmeta_app.vector_db.milvus import QueryExample
 
 # print(os.getenv("VECTOR_DB_EMBEDDINGS"))
 
@@ -164,7 +163,7 @@ def get_hits(query: str, db: str, top_k=3):
         output_fields=["request", "response"],
         expr=f'db == "{db}"',
     )
-
+    from dbmeta_app.vector_db.milvus import QueryExample
     output = []
     for i, hit in enumerate(results[0]):
         request = hit.entity.get("request")
