@@ -40,7 +40,13 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 
 export interface INavDrawerProps {}
 
-const NavDrawer = () => {
+const NavDrawer = ({
+  base = "query",
+  anchor,
+}: {
+  anchor?: string;
+  base?: string;
+}) => {
   const {
     user,
     canContinueAsAuthUser,
@@ -86,7 +92,7 @@ const NavDrawer = () => {
           alignItems="center"
         >
           <Link
-            href={`/query/${node.id || node.uid}`}
+            href={`/${base}/${node.id || node.uid}`}
             onClick={(e: SyntheticEvent) => {
               e.stopPropagation(); // prevent triggering TreeItem's internal handlers
               onNodeClick();
@@ -189,7 +195,7 @@ const NavDrawer = () => {
         },
       }}
       variant="temporary"
-      anchor="left"
+      anchor={anchor || ("left" as any)}
       open={navOpen}
       onClose={handleDrawerClose}
     >

@@ -18,10 +18,12 @@ const DashboardGrid = ({
   title,
   description,
   items,
+  slugPath,
 }: {
   title?: string;
   description?: string;
   items: (DashboardItem & DashboardItemMeta)[];
+  slugPath: string;
 }) => (
   <Container maxWidth={false}>
     {description && (
@@ -39,6 +41,7 @@ const DashboardGrid = ({
             type={it.type}
             subtype={it.subtype}
             queryUid={it.queryUid}
+            slugPath={slugPath}
           />
         </Grid>
       ))}

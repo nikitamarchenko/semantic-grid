@@ -1,3 +1,5 @@
+"use server";
+
 import { readFile } from "node:fs/promises";
 
 import { and, eq, isNull, or } from "drizzle-orm";
@@ -144,6 +146,12 @@ export const getDashboardItemData = async (id: string) => {
   return row;
 };
 
+const getQuery = async ({ queryUid }: { queryUid: string }) =>
+  db
+    .select()
+    .from(queries)
+    .where(eq(queries.queryUid, queryUid as any));
+
 export const upsertQuery = async (input: {
   queryUid: string;
   description?: string;
@@ -168,6 +176,22 @@ export const upsertQuery = async (input: {
   return row;
 };
 
+export const changeDefaultView = async (input: {
+  itemId: string;
+  itemType: "chart" | "table" | string;
+  chartType?: string;
+}) => {
+  const [row] = await db
+    .update(dashboardItems)
+    .set({
+      itemType: input.itemType as any,
+      chartType: input.chartType,
+    })
+    .where(eq(dashboardItems.id, input.itemId))
+    .returning();
+  return row ?? null; // null if already attached
+};
+
 export const attachQueryToDashboard = async (input: {
   dashboardId: string;
   queryUid: string;
@@ -179,7 +203,7 @@ export const attachQueryToDashboard = async (input: {
 }) => {
   const q = await upsertQuery({
     queryUid: input.queryUid,
-    description: input.description,
+    description: input.description || "",
   });
   const [row] = await db
     .insert(dashboardItems)

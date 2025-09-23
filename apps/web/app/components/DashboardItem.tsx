@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 
 import { DashboardChartItem } from "@/app/components/DashboardChartItem";
+import { DashboardItemMenu } from "@/app/components/DashboardItemMenu";
 import { DashboardTableItem } from "@/app/components/DashboardTableItem";
 import { useQueryObject } from "@/app/hooks/useQueryObject";
 
@@ -20,6 +21,7 @@ const DashboardCard = ({
   type,
   subtype,
   queryUid,
+  slugPath,
 }: {
   id: string;
   title: string;
@@ -27,6 +29,7 @@ const DashboardCard = ({
   href?: string;
   type?: string;
   subtype?: string;
+  slugPath: string;
 }) => {
   console.log("card", { id, title, href, type, subtype, queryUid });
   const { data } = useQueryObject(queryUid!);
@@ -38,9 +41,18 @@ const DashboardCard = ({
         <CardContent>
           <Stack spacing={1} justifyContent="center">
             {type !== "create" && (
-              <Typography variant="body1" color="text.primary" gutterBottom>
-                {title || data?.summary}
-              </Typography>
+              <Stack
+                direction="row"
+                alignItems="top"
+                justifyContent="space-between"
+              >
+                <Typography variant="body1" color="text.primary" gutterBottom>
+                  {title || data?.summary}
+                </Typography>
+                {data && (
+                  <DashboardItemMenu id={id} query={data} slugPath={slugPath} />
+                )}
+              </Stack>
             )}
             {type === "create" && (
               <Stack

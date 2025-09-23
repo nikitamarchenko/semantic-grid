@@ -14,8 +14,10 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useContext, useEffect } from "react";
 
 import { createRequestFromQuery, createSession } from "@/app/actions";
+import { AppContext } from "@/app/contexts/App";
 import { ThemeContext } from "@/app/contexts/Theme";
 import { useUserSessions } from "@/app/hooks/useUserSessions";
+import ChatSelectorIcon from "@/app/icons/chat-selector.svg";
 import ToggleMode from "@/app/icons/toggle-mode.svg";
 
 type Dashboard = {
@@ -44,6 +46,7 @@ const GridNavClient = ({
     mutate,
     isLoading: sessionsAreLoading,
   } = useUserSessions();
+  const { setNavOpen, tab, setTab } = useContext(AppContext);
 
   const toggleTheme = () => {
     const next = mode === "dark" ? "light" : "dark";
@@ -102,6 +105,10 @@ const GridNavClient = ({
     console.log("onSaveClick", dashboardId, uid);
   };
 
+  const handleDrawerOpen = () => {
+    setNavOpen((o) => !o);
+  };
+
   return (
     <AppBar position="relative" color="inherit" elevation={0}>
       <Container maxWidth={false}>
@@ -142,6 +149,24 @@ const GridNavClient = ({
           >
             SAVE
           </Button> */}
+          <Tooltip title="Open chat selector">
+            <span>
+              <IconButton
+                // disableRipple
+                // disableTouchRipple
+                // disableFocusRipple
+                // disabled={!user}
+                aria-label="open drawer"
+                onClick={handleDrawerOpen}
+                edge="start"
+              >
+                <Box
+                  component={ChatSelectorIcon}
+                  sx={{ color: "text.secondary" }}
+                />
+              </IconButton>
+            </span>
+          </Tooltip>
 
           <Tooltip title="Toggle light/dark mode">
             <IconButton onClick={toggleTheme} color="inherit">

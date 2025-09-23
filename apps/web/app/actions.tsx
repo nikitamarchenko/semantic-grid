@@ -8,6 +8,7 @@ import { getUserAuthSession } from "@/app/lib/authUser";
 import { sendEmail } from "@/app/lib/awsSes";
 import {
   attachQueryToDashboard,
+  changeDefaultView,
   ensureUserAndDashboard,
 } from "@/app/lib/dashboards";
 import {
@@ -179,15 +180,35 @@ export const ensureSession = async () => {
 
 export const addQueryToUserDashboard = async ({
   queryUid,
+  itemType = "table",
 }: {
   queryUid: string;
+  itemType?: "table" | "chart";
 }) => {
   const { uid, dashboardId } = await ensureSession();
   console.log("addQueryToUserDashboard", { uid, dashboardId, queryUid });
   if (!dashboardId) throw new Error("No dashboardId");
   if (!queryUid) throw new Error("No queryId");
 
-  await attachQueryToDashboard({ dashboardId, queryUid, itemType: "table" });
+  await attachQueryToDashboard({ dashboardId, queryUid, itemType });
+
+  revalidatePath(`/user/${uid}`, "page");
+};
+
+export const editDefaultItemView = async ({
+  itemId,
+  itemType,
+  chartType,
+}: {
+  itemId: string;
+  itemType: "table" | "chart";
+  chartType?: string;
+}) => {
+  const { uid, dashboardId } = await ensureSession();
+  console.log("editDefaultItemView", { uid, itemId });
+  // if (!dashboardId) throw new Error("No dashboardId");
+
+  await changeDefaultView({ itemId, itemType, chartType });
 
   revalidatePath(`/user/${uid}`, "page");
 };

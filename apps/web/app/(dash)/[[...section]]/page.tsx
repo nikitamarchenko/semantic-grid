@@ -66,6 +66,7 @@ const Page = async ({ params }: { params: { section?: string[] } }) => {
 
   return (
     <DashboardGrid
+      slugPath={slugPath}
       title={dMeta?.name}
       description={dMeta?.description || undefined}
       items={items}

@@ -75,7 +75,7 @@ export const DashboardChartItem = ({
     return (
       <>
         <PieChart series={pieSeries} width={200} height={200} />
-        {isLoading && (
+        {false && (
           <Box
             position="absolute"
             top={0}
@@ -105,7 +105,7 @@ export const DashboardChartItem = ({
         >
           <ChartsTooltip /> {/* enables tooltips for all series at hovered X */}
         </LineChart>
-        {isLoading && (
+        {false && (
           <Box
             position="absolute"
             top={0}
