@@ -62,6 +62,7 @@ export const DashboardTableItem = ({ queryUid }: { queryUid: string }) => {
     data,
     error: dataError,
     isLoading,
+    isValidating,
   } = useQuery({
     id: query?.query_id,
     sql: query?.sql,

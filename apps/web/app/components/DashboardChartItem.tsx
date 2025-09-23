@@ -28,6 +28,7 @@ export const DashboardChartItem = ({
     data,
     error: dataError,
     isLoading,
+    isValidating,
   } = useQuery({
     id: query?.query_id,
     sql: query?.sql,
@@ -75,7 +76,7 @@ export const DashboardChartItem = ({
     return (
       <>
         <PieChart series={pieSeries} width={200} height={200} />
-        {false && (
+        {isLoading && (
           <Box
             position="absolute"
             top={0}
@@ -105,7 +106,7 @@ export const DashboardChartItem = ({
         >
           <ChartsTooltip /> {/* enables tooltips for all series at hovered X */}
         </LineChart>
-        {false && (
+        {isLoading && (
           <Box
             position="absolute"
             top={0}

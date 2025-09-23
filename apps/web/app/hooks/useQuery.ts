@@ -62,5 +62,5 @@ export const useQuery = ({
     },
   );
 
-  return { data, error, isLoading: isLoading || isValidating, mutate };
+  return { data, error, isLoading, isValidating, mutate };
 };
