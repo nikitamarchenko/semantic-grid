@@ -150,7 +150,7 @@ export const ResponseTextMessage = ({
               Created linked query {/* text */}
             </Markdown>
             <Tooltip title="Open linked query">
-              <Link href={`/query/${linkedSession}`}>
+              <Link href={`/grid/${linkedSession}`}>
                 <LinkRounded
                   sx={{
                     ml: 0.5,
