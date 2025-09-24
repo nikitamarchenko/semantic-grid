@@ -326,8 +326,8 @@ export const InteractiveDashboard = ({
   }, [gridColumns]);
 
   const pieSeries = useMemo(
-    () => buildPieChartSeries(data.rows || [], gridColumns),
-    [data.rows, gridColumns],
+    () => buildPieChartSeries(data?.rows || [], gridColumns),
+    [data?.rows, gridColumns],
   );
 
   const lineChartSeries = useMemo(
@@ -354,8 +354,8 @@ export const InteractiveDashboard = ({
   );
 
   const dataset = useMemo(
-    () => normalizeDataSet(data.rows || [], gridColumns),
-    [data.rows, gridColumns],
+    () => normalizeDataSet(data?.rows || [], gridColumns),
+    [data?.rows, gridColumns],
   );
 
   // we need to determine if the new query is an ancestor or a successor and set the slide direction accordingly
