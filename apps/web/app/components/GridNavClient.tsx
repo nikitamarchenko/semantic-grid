@@ -14,10 +14,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useContext, useEffect } from "react";
 
 import { createRequestFromQuery, createSession } from "@/app/actions";
-import { AppContext } from "@/app/contexts/App";
+import { LabeledSwitch } from "@/app/components/LabeledSwitch";
 import { ThemeContext } from "@/app/contexts/Theme";
 import { useUserSessions } from "@/app/hooks/useUserSessions";
-import ChatSelectorIcon from "@/app/icons/chat-selector.svg";
 import ToggleMode from "@/app/icons/toggle-mode.svg";
 
 type Dashboard = {
@@ -46,7 +45,6 @@ const GridNavClient = ({
     mutate,
     isLoading: sessionsAreLoading,
   } = useUserSessions();
-  const { setNavOpen, tab, setTab } = useContext(AppContext);
 
   const toggleTheme = () => {
     const next = mode === "dark" ? "light" : "dark";
@@ -105,10 +103,6 @@ const GridNavClient = ({
     console.log("onSaveClick", dashboardId, uid);
   };
 
-  const handleDrawerOpen = () => {
-    setNavOpen((o) => !o);
-  };
-
   return (
     <AppBar position="relative" color="inherit" elevation={0}>
       <Container maxWidth={false}>
@@ -139,34 +133,7 @@ const GridNavClient = ({
           {/* Spacer between primary nav and right-side controls */}
           <Box sx={{ flexGrow: 1 }} />
 
-          {/* <Button
-            component={Link}
-            href="#"
-            variant="contained"
-            color="primary"
-            sx={{ textTransform: "none", ml: 2 }}
-            onClick={onSaveClick}
-          >
-            SAVE
-          </Button> */}
-          <Tooltip title="Open chat selector">
-            <span>
-              <IconButton
-                // disableRipple
-                // disableTouchRipple
-                // disableFocusRipple
-                // disabled={!user}
-                aria-label="open drawer"
-                onClick={handleDrawerOpen}
-                edge="start"
-              >
-                <Box
-                  component={ChatSelectorIcon}
-                  sx={{ color: "text.secondary" }}
-                />
-              </IconButton>
-            </span>
-          </Tooltip>
+          <LabeledSwitch checked />
 
           <Tooltip title="Toggle light/dark mode">
             <IconButton onClick={toggleTheme} color="inherit">

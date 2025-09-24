@@ -8,16 +8,16 @@ import {
   IconButton,
   Toolbar,
   Tooltip,
-  Typography,
 } from "@mui/material";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import type { CSSProperties } from "react";
 import React, { useContext, useEffect } from "react";
 
+import { ItemViewSwitcher } from "@/app/components/ItemViewSwitcher";
 import { LabeledSwitch } from "@/app/components/LabeledSwitch";
 import { AppContext } from "@/app/contexts/App";
 import { ThemeContext } from "@/app/contexts/Theme";
+import ChatSelectorIcon from "@/app/icons/chat-selector.svg";
 import ToggleMode from "@/app/icons/toggle-mode.svg";
 
 type Dashboard = {
@@ -26,35 +26,34 @@ type Dashboard = {
   slug: string;
 };
 
-interface ToggleSliderHandleProps extends CSSProperties {
-  size: number | string;
-}
-
-const ToggleSliderHandle = (props: ToggleSliderHandleProps) => (
-  <div style={{ width: props.size, height: props.size, ...props }}>
-    <Typography>Handle</Typography>
-  </div>
-);
-
-const ToggleSliderBar = (props: CSSProperties) => (
-  <div style={props}>
-    <Typography>Bar</Typography>
-  </div>
-);
-
-const TopNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
+const GridItemNavClient = ({
+  dashboards,
+  uid,
+  dashboardId,
+}: {
+  dashboards: Dashboard[];
+  uid?: string;
+  dashboardId?: string;
+}) => {
   const router = useRouter();
   const pathname = usePathname();
   const items = dashboards.filter((d) => d.slug !== "/");
+  console.log("nav items", items, pathname);
   const { mode, setMode } = useContext(ThemeContext);
-  const { editMode, setEditMode } = useContext(AppContext);
+  const { setNavOpen, editMode, setEditMode } = useContext(AppContext);
 
   const handleToggle = () => {
-    if (!editMode) {
-      router.push(`/grid`);
-      setEditMode(pathname);
+    if (editMode) {
+      router.replace(editMode);
+      setEditMode("");
     }
   };
+
+  useEffect(() => {
+    if (!editMode) {
+      setEditMode("/");
+    }
+  }, []);
 
   const toggleTheme = () => {
     const next = mode === "dark" ? "light" : "dark";
@@ -64,11 +63,9 @@ const TopNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
     }
   };
 
-  useEffect(() => {
-    if (editMode) {
-      setEditMode("");
-    }
-  }, [pathname, editMode]);
+  const handleDrawerOpen = () => {
+    setNavOpen((o) => !o);
+  };
 
   return (
     <AppBar position="relative" color="inherit" elevation={0}>
@@ -100,17 +97,38 @@ const TopNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
           {/* Spacer between primary nav and right-side controls */}
           <Box sx={{ flexGrow: 1 }} />
 
+          <ItemViewSwitcher />
+
+          <LabeledSwitch checked={Boolean(editMode)} onClick={handleToggle} />
+
           {/* <Button
             component={Link}
-            href="/grid"
+            href="#"
             variant="contained"
             color="primary"
             sx={{ textTransform: "none", ml: 2 }}
+            onClick={onSaveClick}
           >
-            NEW
+            SAVE
           </Button> */}
-
-          <LabeledSwitch checked={Boolean(editMode)} onClick={handleToggle} />
+          <Tooltip title="Open chat selector">
+            <span>
+              <IconButton
+                // disableRipple
+                // disableTouchRipple
+                // disableFocusRipple
+                // disabled={!user}
+                aria-label="open drawer"
+                onClick={handleDrawerOpen}
+                // edge="start"
+              >
+                <Box
+                  component={ChatSelectorIcon}
+                  sx={{ color: "text.secondary" }}
+                />
+              </IconButton>
+            </span>
+          </Tooltip>
 
           <Tooltip title="Toggle light/dark mode">
             <IconButton onClick={toggleTheme} color="inherit">
@@ -123,4 +141,4 @@ const TopNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
   );
 };
 
-export default TopNavClient;
+export default GridItemNavClient;

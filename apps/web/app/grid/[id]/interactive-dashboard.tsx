@@ -1,27 +1,36 @@
 "use client";
 
 import {
+  alpha,
   Box,
+  CircularProgress,
   Container,
-  Paper,
-  Popover,
   Slide,
   Stack,
   Tab,
   Tabs,
 } from "@mui/material";
+import { LineChart, PieChart } from "@mui/x-charts";
+import type { GridColDef } from "@mui/x-data-grid";
 import { useRouter } from "next/navigation";
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import HighlightedSQL from "@/app/components/SqlView";
 import { AppContext } from "@/app/contexts/App";
 import { useGridSession } from "@/app/contexts/GridSession";
+import { useItemViewContext } from "@/app/contexts/ItemView";
 import { ThemeContext } from "@/app/contexts/Theme";
+import {
+  buildGridColumns,
+  buildPieChartSeries,
+  normalizeDataSet,
+  timeKey,
+} from "@/app/helpers/chart";
 import { useLocalStorage } from "@/app/hooks/useLocalStorage";
+import { useQuery } from "@/app/hooks/useQuery";
 import type { TColumn } from "@/app/lib/types";
 
 import { ChatContainer } from "./chat-container";
-import { QueryBox } from "./query-box";
 import { DataTable } from "./table";
 
 export interface IInteractiveDashboardProps {
@@ -75,9 +84,6 @@ export const InteractiveDashboard = ({
     rows,
     sections,
     pending,
-    handleClick,
-    handleKeyDown,
-    handleChange,
     isLoading,
     mergedSql,
     isReachingEnd,
@@ -102,15 +108,20 @@ export const InteractiveDashboard = ({
   const prevY = useRef<number | null>(null);
   const prevX = useRef<number | null>(null);
   const maxLeftWidthRef = useRef<number | null>(null);
+  const { view } = useItemViewContext();
 
   const [, setAnchorEl] = useState<null | HTMLElement>(null);
   const router = useRouter();
 
   const query = useMemo(() => {
-    if (!requestId || !sections || sections.length === 0) {
+    if (!sections || sections.length === 0) {
       return null;
     }
-    return sections.find((s) => s.requestId === requestId)?.query || null;
+    const selected = sections.find((s) => s.requestId === requestId)?.query;
+    if (selected) {
+      return selected;
+    }
+    return sections.slice(-1)[0]?.query;
   }, [sections, requestId]);
 
   const gridRef = useRef<HTMLDivElement | null>(null);
@@ -289,6 +300,64 @@ export const InteractiveDashboard = ({
     setPanel(newValue);
   };
 
+  const {
+    data,
+    error: dataError,
+    isLoading: dataLoading,
+  } = useQuery({
+    id: query?.query_id,
+    sql: query?.sql,
+    limit: 20,
+    offset: 0,
+  });
+
+  const gridColumns: GridColDef[] = useMemo(() => {
+    if (!query) return [];
+
+    const userColumns = buildGridColumns(query);
+
+    return [...userColumns];
+  }, [query]);
+
+  const guessedChartType = useMemo(() => {
+    // guess based on gridColumns, i.e. if type of the first column is date, then line chart
+    if (timeKey(gridColumns[0]?.type)) return "line";
+    return "pie"; // default
+  }, [gridColumns]);
+
+  const pieSeries = useMemo(
+    () => buildPieChartSeries(data.rows || [], gridColumns),
+    [data.rows, gridColumns],
+  );
+
+  const lineChartSeries = useMemo(
+    () =>
+      gridColumns.slice(1).map((col) => ({
+        id: col.field?.replace("col_", ""),
+        label: col.headerName,
+        dataKey: col.field?.replace("col_", ""), // EXACTLY matches dataset key
+        showMark: false,
+      })),
+    [gridColumns],
+  );
+
+  const xAxis = useMemo(
+    () => [
+      {
+        dataKey: gridColumns[0]?.field?.replace("col_", ""),
+        scaleType: "time",
+        // valueFormatter: (value: Date) => value.toLocaleDateString(),
+        valueFormatter: (value: number) => new Date(value).toLocaleDateString(),
+      },
+    ],
+    [gridColumns],
+  );
+
+  const dataset = useMemo(
+    () => normalizeDataSet(data.rows || [], gridColumns),
+    [data.rows, gridColumns],
+  );
+
   // we need to determine if the new query is an ancestor or a successor and set the slide direction accordingly
 
   return isLarge ? (
@@ -378,8 +447,77 @@ export const InteractiveDashboard = ({
                     }}
                     ref={gridRef}
                   >
-                    <DataTable />
-                    <Popover
+                    {view === "chart" && guessedChartType === "line" && (
+                      <>
+                        <LineChart
+                          yAxis={[{ width: 100 }]}
+                          style={{ height: "80vh", width: "100%" }}
+                          xAxis={xAxis as any} // e.g. 'col_0'
+                          series={lineChartSeries}
+                          dataset={dataset}
+                        >
+                          {/* enables tooltips for all series at hovered X */}
+                        </LineChart>
+                        {isLoading && (
+                          <Box
+                            position="absolute"
+                            top={0}
+                            left={0}
+                            right={0}
+                            bottom={0}
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                            bgcolor={(theme) =>
+                              alpha(theme.palette.background.default, 0.6)
+                            }
+                          >
+                            <CircularProgress />
+                          </Box>
+                        )}
+                      </>
+                    )}
+                    {view === "chart" && guessedChartType === "pie" && (
+                      <>
+                        <PieChart series={pieSeries} width={200} height={200} />
+                        {isLoading && (
+                          <Box
+                            position="absolute"
+                            top={0}
+                            left={0}
+                            right={0}
+                            bottom={0}
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                            bgcolor={(theme) =>
+                              alpha(theme.palette.background.default, 0.6)
+                            }
+                          >
+                            <CircularProgress />
+                          </Box>
+                        )}
+                      </>
+                    )}
+                    {view === "sql" && (
+                      <Box
+                        sx={{
+                          "& p": {
+                            fontFamily: "monospace",
+                            whiteSpace: "pre-wrap",
+                            color: "text.secondary",
+                          },
+                        }}
+                      >
+                        <HighlightedSQL
+                          code={
+                            query?.sql || "No SQL available for this query."
+                          }
+                        />
+                      </Box>
+                    )}
+                    {view === "grid" && <DataTable />}
+                    {/* <Popover
                       open={!!contextMenu}
                       onClose={handleClose}
                       anchorReference="anchorPosition"
@@ -402,7 +540,7 @@ export const InteractiveDashboard = ({
                           handleChange={handleChange(inputRef)}
                         />
                       </Paper>
-                    </Popover>
+                    </Popover> */}
                   </Box>
                 </CustomTabPanel>
                 <CustomTabPanel value={tab} index={1}>

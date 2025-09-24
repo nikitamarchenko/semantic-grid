@@ -20,7 +20,6 @@ export const DashboardChartItem = ({
   queryUid: string;
   chartType: string;
 }) => {
-  console.log("DashboardChartItem", queryUid, chartType);
   const { data: query, isLoading: queryObjectIsLoading } =
     useQueryObject(queryUid);
 

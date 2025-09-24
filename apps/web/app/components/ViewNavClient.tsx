@@ -6,16 +6,16 @@ import {
   Button,
   Container,
   IconButton,
-  ToggleButton,
-  ToggleButtonGroup,
   Toolbar,
   Tooltip,
 } from "@mui/material";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useContext } from "react";
 
-import { useItemViewContext } from "@/app/contexts/ItemView";
+import { ItemViewSwitcher } from "@/app/components/ItemViewSwitcher";
+import { LabeledSwitch } from "@/app/components/LabeledSwitch";
+import { AppContext } from "@/app/contexts/App";
 import { ThemeContext } from "@/app/contexts/Theme";
 import ToggleMode from "@/app/icons/toggle-mode.svg";
 
@@ -25,49 +25,6 @@ type Dashboard = {
   slug: string;
 };
 
-type ViewKey = "chart" | "grid" | "sql";
-const VIEW_KEYS: ViewKey[] = ["chart", "grid", "sql"];
-
-const ItemViewSwitcher = () => {
-  const pathname = usePathname();
-  const isItemPage = pathname?.startsWith("/item/");
-  const ctx = useItemViewContext();
-
-  if (!ctx) return null; // not on /item/[id]
-
-  const { view, setView } = ctx;
-
-  if (!isItemPage) return null;
-
-  return (
-    <ToggleButtonGroup
-      exclusive
-      size="small"
-      value={view}
-      onChange={(_, next: ViewKey) => next && setView(next)}
-      aria-label="Item view"
-      sx={{
-        // Make it look like it belongs in the toolbar
-        borderRadius: 999,
-        "& .MuiToggleButton-root": {
-          textTransform: "none",
-          px: 1.5,
-        },
-      }}
-    >
-      <ToggleButton value="chart" aria-label="Chart view">
-        Chart
-      </ToggleButton>
-      <ToggleButton value="grid" aria-label="Table view">
-        Table
-      </ToggleButton>
-      <ToggleButton value="sql" aria-label="SQL view">
-        SQL
-      </ToggleButton>
-    </ToggleButtonGroup>
-  );
-};
-
 const ViewNavClient = ({
   dashboards,
   item,
@@ -75,10 +32,22 @@ const ViewNavClient = ({
   dashboards: Dashboard[];
   item: any;
 }) => {
+  const router = useRouter();
   const pathname = usePathname();
   const items = dashboards.filter((d) => d.slug !== "/");
   const { mode, setMode } = useContext(ThemeContext);
   console.log("nav items", item, items);
+
+  const { editMode, setEditMode } = useContext(AppContext);
+
+  const handleToggle = () => {
+    if (!editMode) {
+      router.push(`/grid?q=${item?.query?.queryUid}`);
+      setEditMode(pathname);
+    } else {
+      setEditMode("");
+    }
+  };
 
   const toggleTheme = () => {
     const next = mode === "dark" ? "light" : "dark";
@@ -121,7 +90,9 @@ const ViewNavClient = ({
           {/* Second-level switcher: only shows on /item/[id] */}
           <ItemViewSwitcher />
 
-          <Button
+          <LabeledSwitch checked={Boolean(editMode)} onClick={handleToggle} />
+
+          {/* <Button
             component={Link}
             href={`/grid?q=${item?.query?.queryUid}`}
             variant="contained"
@@ -129,7 +100,7 @@ const ViewNavClient = ({
             sx={{ textTransform: "none", ml: 2 }}
           >
             EDIT
-          </Button>
+          </Button> */}
 
           <Tooltip title="Toggle light/dark mode">
             <IconButton onClick={toggleTheme} color="inherit">

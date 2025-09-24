@@ -399,7 +399,7 @@ export const ChatContainer = ({
         }
       } else if (!!requestId && requestId === section.requestId) {
         // eslint-disable-next-line no-restricted-globals
-        history.pushState(null, "", `/query/${id}`);
+        history.pushState(null, "", `/grid/${id}`);
         setRequestId(undefined);
       }
     }

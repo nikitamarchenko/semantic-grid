@@ -1,42 +1,37 @@
-"use client";
-
 import { Container, Paper, Typography } from "@mui/material";
-import { keyframes } from "@mui/system";
+import React from "react";
 
-const pulse = keyframes`
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.1;
-  }
-  100% {
-    opacity: 1;
-  }
-`;
+import { ensureSession } from "@/app/actions";
+import GridNavClient from "@/app/components/GridNavClient";
+import { getDashboards } from "@/app/lib/dashboards";
 
-const HomePage = () => (
-  <Container
-    maxWidth={false}
-    sx={{
-      width: "100%",
-      height: "calc(100vh)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-    }}
-  >
-    <Paper elevation={0}>
-      <Typography
-        variant="overline"
+const HomePage = async () => {
+  const { uid, dashboardId } = await ensureSession();
+  const dashboards = await getDashboards(uid);
+
+  return (
+    <>
+      <GridNavClient
+        dashboards={dashboards}
+        uid={uid}
+        dashboardId={dashboardId}
+      />
+      <Container
+        maxWidth={false}
         sx={{
-          animation: `${pulse} 1.5s ease-in-out infinite`,
+          width: "100%",
+          height: "calc(100vh)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        Loading...
-      </Typography>
-    </Paper>
-  </Container>
-);
+        <Paper elevation={0}>
+          <Typography variant="overline">Loading...</Typography>
+        </Paper>
+      </Container>
+    </>
+  );
+};
 
 export default HomePage;

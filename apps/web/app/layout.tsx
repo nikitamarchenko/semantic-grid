@@ -7,6 +7,7 @@ import Script from "next/script";
 import React from "react";
 
 import MuiXLicense from "@/app/components/MuiLicense";
+import { AppProvider } from "@/app/contexts/App";
 import { FlexibleThemeProvider } from "@/app/contexts/Theme";
 import SWRProvider from "@/app/swr-provider";
 
@@ -38,8 +39,10 @@ const RootLayout = ({ children }: { children: React.ReactElement }) => (
         <FlexibleThemeProvider>
           <UserProvider>
             <SWRProvider>
-              {children}
-              <MuiXLicense />
+              <AppProvider>
+                {children}
+                <MuiXLicense />
+              </AppProvider>
             </SWRProvider>
           </UserProvider>
         </FlexibleThemeProvider>

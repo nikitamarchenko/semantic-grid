@@ -1,7 +1,7 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
-import React, { createContext, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
 
 import { useLocalStorage } from "@/app/hooks/useLocalStorage";
 
@@ -30,6 +30,8 @@ export type IAppContext = {
   setStoredDBName?: (value: string) => void;
   tab: number;
   setTab: Dispatch<SetStateAction<number>>;
+  editMode: string;
+  setEditMode: Dispatch<SetStateAction<string>>;
 };
 
 export const LegacyModels: Record<string, TModel> = {
@@ -94,6 +96,8 @@ const initState: IAppContext = {
   setStoredModelName: () => {},
   tab: 0,
   setTab: () => {},
+  editMode: "",
+  setEditMode: () => {},
 };
 
 export const AppContext = createContext<IAppContext>(initState);
@@ -126,9 +130,14 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [contextOpen, setContextOpen] = useState<boolean>(
     initState.contextOpen,
   );
+  const [editMode, setEditMode] = useState<string>("");
   const [currentMessage, setCurrentMessage] = useState(
     initState.currentMessage,
   );
+
+  useEffect(() => {
+    console.log("editMode", editMode);
+  }, [editMode]);
 
   return (
     <AppContext.Provider
@@ -152,6 +161,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         setStoredDBName,
         tab,
         setTab,
+        editMode,
+        setEditMode,
       }}
     >
       {children}
