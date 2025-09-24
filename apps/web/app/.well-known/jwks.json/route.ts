@@ -2,6 +2,8 @@ import { NextApiRequest, NextApiResponse } from "next";
 import * as jose from "jose";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 const PUBLIC_KEY = process.env.JWT_PUBLIC_KEY!;
 
 export const GET = async (req: NextApiRequest, res: NextApiResponse) => {

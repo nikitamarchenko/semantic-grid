@@ -10,16 +10,17 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # These are your app coordinates
 ARG APP_NAME=ape-gpt-app
 ARG APP_DIR=apps/web
-
+RUN bun add -D turbo@2.5.8
 ############################################
 # Prune: produce a tiny context for this app
 ############################################
 FROM base AS pruner
 # Copy just what Turbo needs to compute the graph
+
 COPY turbo.json package.json bun.lock* ./
 COPY apps ./apps
 COPY packages ./packages
-RUN bunx turbo@^2 prune --scope="$APP_NAME" --docker
+RUN bunx turbo prune --scope="$APP_NAME" --docker
 
 ############################################
 # Deps (dev): install using only pruned manifests
@@ -29,7 +30,6 @@ FROM base AS deps
 # pruned manifests (json/lock only)
 COPY --from=pruner /repo/out/json/ ./
 # support text or binary bun lock
-COPY --from=pruner /repo/out/bun.lockb* ./
 COPY --from=pruner /repo/out/bun.lock*  ./
 
 # Use BuildKit cache mounts to speed re-installs
@@ -45,9 +45,6 @@ FROM base AS builder
 COPY --from=deps /repo/node_modules ./node_modules
 COPY --from=pruner /repo/out/full/ ./
 
-# Optional: ensure a local turbo; harmless if already present
-RUN bun add -D turbo@^2.5.6
-
 # Scope build to this app (prevents other workspaces from running)
 RUN bunx turbo run build --filter="$APP_NAME"
 
@@ -57,7 +54,6 @@ RUN bunx turbo run build --filter="$APP_NAME"
 FROM base AS prod_deps
 # Install prod deps from the same pruned manifests/lock
 COPY --from=pruner /repo/out/json/ ./
-COPY --from=pruner /repo/out/bun.lockb* ./
 COPY --from=pruner /repo/out/bun.lock*  ./
 ENV BUN_INSTALL_DEV=false
 RUN --mount=type=cache,target=/root/.bun \
