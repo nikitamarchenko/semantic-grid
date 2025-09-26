@@ -16,9 +16,11 @@ import { useQueryObject } from "@/app/hooks/useQueryObject";
 export const DashboardChartItem = ({
   queryUid,
   chartType,
+  minHeight = 300,
 }: {
   queryUid: string;
   chartType: string;
+  minHeight?: number;
 }) => {
   const { data: query, isLoading: queryObjectIsLoading } =
     useQueryObject(queryUid);
@@ -74,7 +76,11 @@ export const DashboardChartItem = ({
   if (chartType === "pie") {
     return (
       <>
-        <PieChart series={pieSeries} width={200} height={200} />
+        <PieChart
+          series={pieSeries}
+          width={(minHeight * 1.5) / 3}
+          height={minHeight}
+        />
         {isLoading && (
           <Box
             position="absolute"
@@ -100,8 +106,8 @@ export const DashboardChartItem = ({
           xAxis={xAxis as any} // e.g. 'col_0'
           series={lineChartSeries}
           dataset={normalizeDataSet(data?.rows || [], gridColumns)}
-          width={400}
-          height={300}
+          width={(minHeight * 4) / 3}
+          height={minHeight}
         >
           <ChartsTooltip /> {/* enables tooltips for all series at hovered X */}
         </LineChart>

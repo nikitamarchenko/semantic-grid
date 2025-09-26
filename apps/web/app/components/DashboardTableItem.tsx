@@ -52,7 +52,13 @@ const buildGridColumns = (query: TQuery) => {
   );
 };
 
-export const DashboardTableItem = ({ queryUid }: { queryUid: string }) => {
+export const DashboardTableItem = ({
+  queryUid,
+  minHeight,
+}: {
+  queryUid: string;
+  minHeight: number;
+}) => {
   const { data: query, isLoading: queryObjectIsLoading } =
     useQueryObject(queryUid);
 

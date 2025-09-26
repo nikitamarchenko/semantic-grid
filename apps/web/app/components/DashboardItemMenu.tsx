@@ -17,35 +17,38 @@ export const DashboardItemMenu = ({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    event.stopPropagation();
-    event.preventDefault();
+  const stop = (e: React.SyntheticEvent | MouseEvent) => {
+    // block both bubbling and default (important for <a> / Link)
+    e.stopPropagation?.();
+    (e as MouseEvent).preventDefault?.();
+    // in stubborn cases (Next.js Link on parent), also:
+    // @ts-ignore
+    e.nativeEvent?.stopImmediatePropagation?.();
+  };
+
+  const handleButtonClick = (event: React.MouseEvent<HTMLElement>) => {
+    stop(event);
     setAnchorEl(event.currentTarget);
   };
 
-  const handleClose = () => {
-    setAnchorEl(null);
+  const handleClose = () => setAnchorEl(null);
+
+  const handleCloseWithStop = (
+    event: {},
+    _reason: "backdropClick" | "escapeKeyDown",
+  ) => {
+    // MUI passes the original event here -> stop it so the parent link doesn't fire
+    // @ts-ignore
+    if (event?.stopPropagation) stop(event as unknown as MouseEvent);
+    handleClose();
   };
 
-  const handleMenuChoice = async (val: string) => {
-    console.log("Menu choice:", val, "for query:", query);
-    const [op, itemType = "table", chartType] = val.split("-"); // e.g., view-table, view-chart-pie
-    // Implement the action based on choice
+  const handleMenuChoice = async (val: string, e?: React.MouseEvent) => {
+    if (e) stop(e);
+    const [, itemType = "table", chartType] = val.split("-");
     switch (val) {
       case "view-table":
-        await editDefaultItemView({
-          itemId: id,
-          itemType: itemType as any,
-          chartType,
-        });
-        break;
       case "view-chart-pie":
-        await editDefaultItemView({
-          itemId: id,
-          itemType: itemType as any,
-          chartType,
-        });
-        break;
       case "view-chart-line":
         await editDefaultItemView({
           itemId: id,
@@ -53,95 +56,85 @@ export const DashboardItemMenu = ({
           chartType,
         });
         break;
-
       case "edit":
-        // e.g., navigate to edit page
         break;
       case "delete":
-        // e.g., call delete API
         // eslint-disable-next-line no-restricted-globals,no-alert
         if (confirm(`Are you sure you want to delete item`)) {
-          // Call delete API here
+          // delete API
         }
         break;
       default:
         break;
     }
-    setAnchorEl(null);
+    handleClose();
   };
 
   const ItemMenu = [
-    {
-      label: "Show as Table",
-      action: (e: React.MouseEvent<HTMLElement>) => {
-        e.stopPropagation();
-        e.preventDefault();
-        handleMenuChoice("view-table");
-      },
-    },
-    {
-      label: "Show as Pie Chart",
-      action: (e: React.MouseEvent<HTMLElement>) => {
-        e.stopPropagation();
-        e.preventDefault();
-        handleMenuChoice("view-chart-pie");
-      },
-    },
-    {
-      label: "Show as Line Chart",
-      action: (e: React.MouseEvent<HTMLElement>) => {
-        e.stopPropagation();
-        e.preventDefault();
-        handleMenuChoice("view-chart-line");
-      },
-    },
+    { label: "Show as Table", key: "view-table" },
+    { label: "Show as Pie Chart", key: "view-chart-pie" },
+    { label: "Show as Line Chart", key: "view-chart-line" },
     { label: "sep1", isSeparator: true },
-    {
-      label: "Edit",
-      action: (e: React.MouseEvent<HTMLElement>) => {
-        e.stopPropagation();
-        e.preventDefault();
-        handleMenuChoice("edit");
-      },
-    },
-    {
-      label: "Delete",
-      action: (e: React.MouseEvent<HTMLElement>) => {
-        e.stopPropagation();
-        e.preventDefault();
-        handleMenuChoice("delete");
-      },
-    },
+    { label: "Edit", key: "edit" },
+    { label: "Delete", key: "delete", destructive: true },
   ];
 
   return (
-    <Box>
-      <IconButton onClick={handleClick} size="small">
+    <Box
+      // belt-and-suspenders: block clicks on the wrapper too
+      onClick={stop}
+      onMouseDown={stop}
+    >
+      <IconButton
+        id="dashboard-item-menu-button"
+        onClick={handleButtonClick}
+        onMouseDown={stop}
+        size="small"
+      >
         <MoreVert />
       </IconButton>
+
       <Menu
         disablePortal
         anchorEl={anchorEl}
         open={open}
+        onClose={handleCloseWithStop}
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         transformOrigin={{ vertical: "top", horizontal: "center" }}
-        onClose={handleClose}
-        onClick={handleClick} // prevent bubbling to parent
+        // Stop events inside the menu before they escape
+        MenuListProps={{
+          "aria-labelledby": "dashboard-item-menu-button",
+          onClick: (e: React.MouseEvent) => stop(e),
+          onMouseDown: (e: React.MouseEvent) => stop(e),
+        }}
+        // Also attach to the paper element for safety (menus render in a portal)
+        slotProps={{
+          paper: {
+            onClick: (e: React.MouseEvent) => stop(e),
+            onMouseDown: (e: React.MouseEvent) => stop(e),
+          },
+        }}
       >
         {ItemMenu.map((mi) =>
           mi.isSeparator ? (
             <Divider key={mi.label} />
           ) : (
             <MenuItem
-              disabled={!slugPath.startsWith("/user")}
               key={mi.label}
-              onClick={mi.action}
-              color={mi.label === "Delete" ? "error.main!important" : "inherit"}
+              disabled={!slugPath.startsWith("/user")}
+              onMouseDown={(e) => stop(e)}
+              onClick={(e) => handleMenuChoice(mi.key!, e)}
               sx={{
-                minWidth: 100,
-                "&.MuiButtonBase-root.MuiMenuItem-root": {
-                  color: mi.label === "Delete" ? "error.main" : "inherit",
-                },
+                minWidth: 140,
+                ...(mi.destructive && {
+                  color: "error.main",
+                  fontWeight: 600,
+                  "&:hover": {
+                    bgcolor: (t) => t.palette.error.light,
+                    color: "error.main",
+                  },
+                  "&.Mui-focusVisible": { color: "error.main" },
+                }),
               }}
             >
               {mi.label}

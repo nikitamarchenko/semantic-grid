@@ -14,6 +14,11 @@ type DashboardItemMeta = {
   queryUid?: string;
 };
 
+const byPositionAsc = (
+  a: DashboardItem & DashboardItemMeta,
+  b: DashboardItem & DashboardItemMeta,
+) => (a.position || 0) - (b.position || 0);
+
 const DashboardGrid = ({
   title,
   description,
@@ -33,8 +38,8 @@ const DashboardGrid = ({
         {description}
       </Typography>
     )}
-    <Grid container spacing={3}>
-      {items.map((it) => (
+    <Grid container spacing={3} direction="row" alignItems="stretch">
+      {items.sort(byPositionAsc).map((it) => (
         <Grid item key={it.id} xs={12} md={12 / maxItemsPerRow}>
           <DashboardCard
             id={it.id}
@@ -44,6 +49,7 @@ const DashboardGrid = ({
             subtype={it.subtype}
             queryUid={it.queryUid}
             slugPath={slugPath}
+            maxItemsPerRow={maxItemsPerRow}
           />
         </Grid>
       ))}

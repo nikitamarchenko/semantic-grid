@@ -444,6 +444,7 @@ export const InteractiveDashboard = ({
                     sx={{
                       height: "calc(100vh - 64px)",
                       position: "relative",
+                      overflow: "auto",
                     }}
                     ref={gridRef}
                   >

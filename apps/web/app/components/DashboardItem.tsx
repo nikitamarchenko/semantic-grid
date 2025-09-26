@@ -22,6 +22,7 @@ const DashboardCard = ({
   subtype,
   queryUid,
   slugPath,
+  maxItemsPerRow,
 }: {
   id: string;
   title: string;
@@ -30,13 +31,21 @@ const DashboardCard = ({
   type?: string;
   subtype?: string;
   slugPath: string;
+  maxItemsPerRow: number;
 }) => {
   console.log("card", { id, title, href, type, subtype, queryUid });
   const { data } = useQueryObject(queryUid!);
   console.log("card query data", data);
+  const minHeight = maxItemsPerRow ? 400 * (3 / maxItemsPerRow) : 400;
 
   const inner = (
-    <Card elevation={0} sx={{ minHeight: 400, minWidth: 300 }}>
+    <Card
+      elevation={0}
+      sx={{
+        minHeight,
+        minWidth: 300,
+      }}
+    >
       <CardActionArea component={href ? Link : "div"} href={href} sx={{ p: 2 }}>
         <CardContent>
           <Stack spacing={1} justifyContent="center">
@@ -60,7 +69,7 @@ const DashboardCard = ({
                 alignItems="center"
                 justifyContent="center"
                 spacing={2}
-                sx={{ flexGrow: 1, opacity: 0.5, height: 375 }}
+                sx={{ flexGrow: 1, opacity: 0.5, height: minHeight }}
               >
                 <Typography
                   variant="h1"
@@ -76,10 +85,11 @@ const DashboardCard = ({
               <DashboardChartItem
                 queryUid={queryUid}
                 chartType={subtype || "pie"}
+                minHeight={minHeight}
               />
             )}
             {type === "table" && queryUid && (
-              <DashboardTableItem queryUid={queryUid} />
+              <DashboardTableItem queryUid={queryUid} minHeight={minHeight} />
             )}
           </Stack>
         </CardContent>

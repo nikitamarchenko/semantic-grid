@@ -44,6 +44,7 @@ const Page = async ({ params }: { params: { section?: string[] } }) => {
     (d as any).items?.map(
       (it: DashboardItem & { query: { queryUid: string } }) => ({
         key: it.id,
+        position: it.position,
         title: it.description || it.name || "",
         id: it.id,
         href: it.query?.queryUid
@@ -60,6 +61,7 @@ const Page = async ({ params }: { params: { section?: string[] } }) => {
     title: "Create new",
     type: "create",
     href: "/grid",
+    position: Number.MAX_SAFE_INTEGER,
   });
 
   console.log("Dashboard items:", slugPath, items);
