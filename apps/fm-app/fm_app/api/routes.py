@@ -820,15 +820,12 @@ async def get_query_data(
     # count_sql = f"SELECT count(*) FROM ({sql}) AS subquery;"
     # query_sql = f"SELECT * FROM ({sql}) AS subquery LIMIT :limit OFFSET :offset"
     combined_sql = f"""
-        with 
-            orig_sql  as ({sql}),
-            count as (
-                SELECT count(*) as _inner_count FROM orig_sql
-            )
-        SELECT * 
-        FROM orig_sql
-        LEFT JOIN total_count on true
-        LIMIT :limit OFFSET :offset
+        SELECT
+            t.*,
+            COUNT(*) OVER () AS total_count
+        FROM ({sql}) AS t
+        LIMIT :limit 
+        OFFSET :offset
     """
 
     with wh_session() as session:
