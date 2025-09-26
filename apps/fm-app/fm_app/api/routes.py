@@ -792,11 +792,11 @@ async def get_query_data(
         with 
             orig_sql  as ({sql}),
             count as (
-                SELECT count(*) as _inner_conur FROM orig_sql
+                SELECT count(*) as _inner_count FROM orig_sql
             )
         SELECT * 
         FROM orig_sql
-        LEFT JOIN count on true
+        LEFT JOIN total_count on true
         LIMIT :limit OFFSET :offset
     """
 
