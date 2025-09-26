@@ -70,6 +70,7 @@ const Page = async ({ params }: { params: { section?: string[] } }) => {
       title={dMeta?.name}
       description={dMeta?.description || undefined}
       items={items}
+      maxItemsPerRow={dMeta?.maxItemsPerRow || 3}
     />
   );
 };

@@ -15,6 +15,13 @@
       "when": 1758317815609,
       "tag": "0001_glorious_prodigy",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1758916365017,
+      "tag": "0002_rich_the_hood",
+      "breakpoints": true
     }
   ]
 }

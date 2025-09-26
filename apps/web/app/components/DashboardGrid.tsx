@@ -19,11 +19,13 @@ const DashboardGrid = ({
   description,
   items,
   slugPath,
+  maxItemsPerRow = 2,
 }: {
   title?: string;
   description?: string;
   items: (DashboardItem & DashboardItemMeta)[];
   slugPath: string;
+  maxItemsPerRow?: number;
 }) => (
   <Container maxWidth={false}>
     {description && (
@@ -33,7 +35,7 @@ const DashboardGrid = ({
     )}
     <Grid container spacing={3}>
       {items.map((it) => (
-        <Grid item key={it.id} xs={12} sm={6} md={4}>
+        <Grid item key={it.id} xs={12} md={12 / maxItemsPerRow}>
           <DashboardCard
             id={it.id}
             title={it.title}

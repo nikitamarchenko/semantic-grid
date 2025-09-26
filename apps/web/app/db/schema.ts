@@ -26,6 +26,7 @@ export const dashboards = pgTable("dashboards", {
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   description: text("description"),
+  maxItemsPerRow: integer("max_items_per_row"),
   ownerUserId: uuid("owner_user_id")
     .references(() => users.id, { onDelete: "cascade" })
     // @ts-ignore
