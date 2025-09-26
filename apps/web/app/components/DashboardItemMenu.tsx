@@ -1,5 +1,6 @@
 import { MoreVert } from "@mui/icons-material";
 import { Box, Divider, IconButton, Menu, MenuItem } from "@mui/material";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 import { editDefaultItemView } from "@/app/actions";
@@ -14,8 +15,10 @@ export const DashboardItemMenu = ({
   query: TQuery;
   slugPath: string;
 }) => {
+  const router = useRouter();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+  const user = slugPath.startsWith("/user");
 
   const stop = (e: React.SyntheticEvent | MouseEvent) => {
     // block both bubbling and default (important for <a> / Link)
@@ -47,6 +50,9 @@ export const DashboardItemMenu = ({
     if (e) stop(e);
     const [, itemType = "table", chartType] = val.split("-");
     switch (val) {
+      case "item":
+        router.push(`/item/${id}#${itemType}`);
+        break;
       case "view-table":
       case "view-chart-pie":
       case "view-chart-line":
@@ -57,6 +63,8 @@ export const DashboardItemMenu = ({
         });
         break;
       case "edit":
+      case "copy":
+        router.push(`/grid?q=${query.query_id}`);
         break;
       case "delete":
         // eslint-disable-next-line no-restricted-globals,no-alert
@@ -70,14 +78,21 @@ export const DashboardItemMenu = ({
     handleClose();
   };
 
-  const ItemMenu = [
-    { label: "Show as Table", key: "view-table" },
-    { label: "Show as Pie Chart", key: "view-chart-pie" },
-    { label: "Show as Line Chart", key: "view-chart-line" },
-    { label: "sep1", isSeparator: true },
-    { label: "Edit", key: "edit" },
-    { label: "Delete", key: "delete", destructive: true },
-  ];
+  const ItemMenu = (user: boolean) =>
+    user
+      ? [
+          { label: "Show as Table", key: "view-table" },
+          { label: "Show as Pie Chart", key: "view-chart-pie" },
+          { label: "Show as Line Chart", key: "view-chart-line" },
+          { label: "sep1", isSeparator: true },
+          { label: "View", key: "item" },
+          { label: "Edit", key: "edit" },
+          { label: "Delete", key: "delete", destructive: true, disabled: true },
+        ]
+      : [
+          { label: "View", key: "item" },
+          { label: "Copy and edit", key: "copy" },
+        ];
 
   return (
     <Box
@@ -115,13 +130,13 @@ export const DashboardItemMenu = ({
           },
         }}
       >
-        {ItemMenu.map((mi) =>
+        {ItemMenu(user).map((mi) =>
           mi.isSeparator ? (
             <Divider key={mi.label} />
           ) : (
             <MenuItem
               key={mi.label}
-              disabled={!slugPath.startsWith("/user")}
+              disabled={mi.disabled}
               onMouseDown={(e) => stop(e)}
               onClick={(e) => handleMenuChoice(mi.key!, e)}
               sx={{
