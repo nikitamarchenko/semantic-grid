@@ -8,7 +8,9 @@ import { getUserAuthSession } from "@/app/lib/authUser";
 import { sendEmail } from "@/app/lib/awsSes";
 import {
   attachQueryToDashboard,
+  attachQueryToUserDashboard,
   changeDefaultView,
+  detachQueryFromDashboard,
   ensureUserAndDashboard,
 } from "@/app/lib/dashboards";
 import {
@@ -175,7 +177,24 @@ export const ensureSession = async () => {
   const { userId, dashboardId, uid } = await ensureUserAndDashboard({ sid });
   console.log("ensuring session, sid:", userId, dashboardId);
 
-  return { uid, dashboardId };
+  return { uid, dashboardId, userId };
+};
+
+export const addQueryToDashboard = async ({
+  queryUid,
+  itemType = "table",
+}: {
+  queryUid: string;
+  itemType?: "table" | "chart";
+}) => {
+  const { uid, dashboardId, userId } = await ensureSession();
+  console.log("addQueryToDashboard", { uid, dashboardId, queryUid });
+  if (!dashboardId) throw new Error("No dashboardId");
+  if (!queryUid) throw new Error("No queryId");
+
+  await attachQueryToDashboard({ dashboardId, queryUid, itemType });
+
+  revalidatePath(`/user/${userId}`, "page");
 };
 
 export const addQueryToUserDashboard = async ({
@@ -185,14 +204,15 @@ export const addQueryToUserDashboard = async ({
   queryUid: string;
   itemType?: "table" | "chart";
 }) => {
-  const { uid, dashboardId } = await ensureSession();
-  console.log("addQueryToUserDashboard", { uid, dashboardId, queryUid });
-  if (!dashboardId) throw new Error("No dashboardId");
+  const { uid, userId } = await ensureSession();
+  console.log("addQueryToUserDashboard", { uid, queryUid, userId });
+  if (!uid) throw new Error("No user");
   if (!queryUid) throw new Error("No queryId");
 
-  await attachQueryToDashboard({ dashboardId, queryUid, itemType });
+  await attachQueryToUserDashboard({ userId: uid, queryUid, itemType });
 
-  revalidatePath(`/user/${uid}`, "page");
+  revalidatePath(`/user/${userId}`, "page");
+  return `/user/${userId}`;
 };
 
 export const editDefaultItemView = async ({
@@ -211,4 +231,19 @@ export const editDefaultItemView = async ({
   await changeDefaultView({ itemId, itemType, chartType });
 
   revalidatePath(`/user/${uid}`, "page");
+};
+
+export const deleteQueryFromDashboard = async ({
+  queryUid,
+}: {
+  queryUid: string;
+}) => {
+  const { uid, dashboardId, userId } = await ensureSession();
+  console.log("deleteQueryFromDashboard", { uid, dashboardId, queryUid });
+  if (!dashboardId) throw new Error("No dashboardId");
+  if (!queryUid) throw new Error("No queryId");
+
+  await detachQueryFromDashboard(dashboardId, queryUid);
+
+  revalidatePath(`/user/${userId}`, "page");
 };

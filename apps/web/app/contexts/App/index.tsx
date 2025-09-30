@@ -1,7 +1,7 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useState } from "react";
 
 import { useLocalStorage } from "@/app/hooks/useLocalStorage";
 
@@ -134,10 +134,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [currentMessage, setCurrentMessage] = useState(
     initState.currentMessage,
   );
-
-  useEffect(() => {
-    console.log("editMode", editMode);
-  }, [editMode]);
 
   return (
     <AppContext.Provider

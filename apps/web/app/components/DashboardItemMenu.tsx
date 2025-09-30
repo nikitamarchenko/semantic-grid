@@ -3,7 +3,7 @@ import { Box, Divider, IconButton, Menu, MenuItem } from "@mui/material";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
-import { editDefaultItemView } from "@/app/actions";
+import { deleteQueryFromDashboard, editDefaultItemView } from "@/app/actions";
 import type { TQuery } from "@/app/lib/types";
 
 export const DashboardItemMenu = ({
@@ -69,7 +69,7 @@ export const DashboardItemMenu = ({
       case "delete":
         // eslint-disable-next-line no-restricted-globals,no-alert
         if (confirm(`Are you sure you want to delete item`)) {
-          // delete API
+          await deleteQueryFromDashboard({ queryUid: query.query_id }); // , dashboardId
         }
         break;
       default:
@@ -87,7 +87,7 @@ export const DashboardItemMenu = ({
           { label: "sep1", isSeparator: true },
           { label: "View", key: "item" },
           { label: "Edit", key: "edit" },
-          { label: "Delete", key: "delete", destructive: true, disabled: true },
+          { label: "Delete", key: "delete", destructive: true },
         ]
       : [
           { label: "View", key: "item" },
@@ -136,7 +136,7 @@ export const DashboardItemMenu = ({
           ) : (
             <MenuItem
               key={mi.label}
-              disabled={mi.disabled}
+              disabled={(mi as any)?.disabled}
               onMouseDown={(e) => stop(e)}
               onClick={(e) => handleMenuChoice(mi.key!, e)}
               sx={{

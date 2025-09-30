@@ -130,109 +130,227 @@ async def interactive_flow(
     # print("intent_hint", intent_hint)
 
     # Variables you inject at runtime
-    planner_vars = {
-        "client_id": settings.client_id,
-        "intent_hint": intent_hint,
-        "query_metadata": query_metadata_instruction,
-        "parent_query_metadata": parent_metadata_instruction,
-        "parent_session_id": parent_instruction,
-        "selected_row_data": rows_instruction,
-        "selected_column_data": column_instruction,
-        "current_datetime": datetime.now().replace(microsecond=0),
-    }
 
-    # Capabilities coming from MCPs (db-meta/db-ref)
-    db_meta_caps = {
-        # "sql_dialect": "clickhouse",
-        # "cost_tier": "standard",
-        # "max_result_rows": 5000,
-    }
-    mcp_ctx = {
-        "req": McpServerRequest(
-            request_id=req.request_id,
-            db=req.db,
-            request=req.request,
-            session_id=req.session_id,
-            model=req.model,
-            flow=req.flow,
-        ),
-        "flow_step_num": next(flow_step),  # for logging purposes
-    }
+    if req.request_type == InteractiveRequestType.linked_query:
+        ### LINKED SESSION ###
+        linked_query_vars = {
+            "client_id": settings.client_id,
+            "intent_hint": intent_hint,
+            "query_metadata": query_metadata_instruction,
+            "current_datetime": datetime.now().replace(microsecond=0),
+        }
+        await update_request_status(RequestStatus.new, None, db, req.request_id)
 
-    slot = await assembler.render_async(
-        "planner", variables=planner_vars, req_ctx=mcp_ctx, mcp_caps=db_meta_caps
-    )
-
-    intent_llm_system_prompt = slot.prompt_text
-
-    history = await get_history(db, req.session_id, include_responses=False)
-    if ai_model.get_name() != "gemini":
-        messages = [{"role": "system", "content": intent_llm_system_prompt}]
-        for item in history:
-            if item.get("content") is not None:
-                messages.append(item)
-        messages.append({"role": "user", "content": req.request})
-
-    else:
-        messages = f"""
-             {intent_llm_system_prompt}\n
-             User input: {req.request}\n"""
-
-    logger.info(
-        "Prepared intent request",
-        flow_stage="intent",
-        flow_step_num=next(flow_step),
-        ai_request=messages,
-    )
-
-    user_intent = None
-    print(">>> PRE INTENT", stopwatch.lap())
-
-    try:
-        llm_response = ai_model.get_structured(
-            messages, IntentAnalysis, "gpt-4.1-2025-04-14"
-        )
-
-    except Exception as e:
-        logger.error(
-            "Error getting LLM response",
-            flow_stage="error_llm",
-            flow_step_num=next(flow_step),
-            error=str(e),
-        )
-        req.status = RequestStatus.error
-        req.err = str(e)
-        await update_request_status(RequestStatus.error, req.err, db, req.request_id)
-        return req
-
-    print(">>> POST INTENT", stopwatch.lap())
-
-    if ai_model.get_name() != "gemini":
-        messages.append({"role": "assistant", "content": llm_response})
-    else:
-        messages = f"""
-         {messages}\n
-         AI response: {llm_response}\n"""
-
-    logger.info(
-        "Got intent",
-        flow_stage="llm_intent",
-        flow_step_num=next(flow_step),
-        ai_response=llm_response,
-    )
-    await update_request_status(RequestStatus.intent, None, db, req.request_id)
-    if llm_response.intent:
-        user_intent = llm_response.intent
-        await update_request(
-            update=UpdateRequestModel(
-                request_id=req.request_id, intent=llm_response.intent
+        # Capabilities coming from MCPs (db-meta/db-ref)
+        # db_meta_caps = {
+            # "sql_dialect": "clickhouse",
+            # "cost_tier": "standard",
+            # "max_result_rows": 5000,
+        # }
+        mcp_ctx = {
+            "req": McpServerRequest(
+                request_id=req.request_id,
+                db=req.db,
+                request=req.request,
+                session_id=req.session_id,
+                model=req.model,
+                flow=req.flow,
             ),
+            "flow_step_num": next(flow_step),  # for logging purposes
+        }
+
+        slot = await assembler.render_async(
+            "linked_query", variables=linked_query_vars, req_ctx=mcp_ctx, mcp_caps=None
+        )
+
+        linked_query_llm_system_prompt = slot.prompt_text
+
+        if ai_model.get_name() != "gemini":
+            messages = [{"role": "system", "content": linked_query_llm_system_prompt}]
+            messages.append({"role": "user", "content": req.request})
+
+        else:
+            messages = f"""
+                 {linked_query_llm_system_prompt}\n
+                 User input: {req.request}\n"""
+
+        logger.info(
+            "Prepared linked_query request",
+            flow_stage="linked_query",
+            flow_step_num=next(flow_step),
+            ai_request=messages,
+        )
+
+        print(">>> PRE LINKED QUERY", stopwatch.lap())
+        await update_request_status(RequestStatus.intent, None, db, req.request_id)
+
+
+        try:
+            llm_response = ai_model.get_structured(
+                messages, QueryMetadata, "gpt-4.1-2025-04-14"
+            )
+
+        except Exception as e:
+            logger.error(
+                "Error getting LLM response",
+                flow_stage="error_llm",
+                flow_step_num=next(flow_step),
+                error=str(e),
+            )
+            req.status = RequestStatus.error
+            req.err = str(e)
+            await update_request_status(RequestStatus.error, req.err, db,
+                                        req.request_id)
+            return req
+
+        print(">>> POST LINKED QUERY", stopwatch.lap())
+        await update_request_status(RequestStatus.finalizing, None, db, req.request_id)
+
+        if ai_model.get_name() != "gemini":
+            messages.append({"role": "assistant", "content": llm_response})
+        else:
+            messages = f"""
+                     {messages}\n
+                     AI response: {llm_response}\n"""
+
+        new_metadata = llm_response.model_dump()
+
+        # complete the flow
+        logger.info(
+            "Flow complete",
+            flow_stage="end",
+            flow_step_num=next(flow_step),
+            flow=req.flow,
+            metadata=new_metadata,
+        )
+        await update_query_metadata(
+            session_id=req.session_id,
+            user_owner=req.user,
+            metadata=new_metadata,
             db=db,
         )
+        await update_request_status(RequestStatus.done, None, db, req.request_id)
+        req.response = llm_response.result
+        req.structured_response = StructuredResponse(
+            intent=llm_response.summary,
+            description=llm_response.description,
+            intro=llm_response.result,
+            sql=llm_response.sql,
+            metadata=new_metadata,
+            refs=req.refs,
+        )
 
-    user_intent_instruction = (
-        f"User intent: {llm_response.intent}" if llm_response.intent is not None else ""
-    )
+        print(">>> DONE LINKED QUERY", stopwatch.lap())
+
+        return req
+
+
+    else:
+        ### QUERY PLANNER / INTENT ###
+
+        planner_vars = {
+            "client_id": settings.client_id,
+            "intent_hint": intent_hint,
+            "query_metadata": query_metadata_instruction,
+            "parent_query_metadata": parent_metadata_instruction,
+            "parent_session_id": parent_instruction,
+            "selected_row_data": rows_instruction,
+            "selected_column_data": column_instruction,
+            "current_datetime": datetime.now().replace(microsecond=0),
+        }
+
+        # Capabilities coming from MCPs (db-meta/db-ref)
+        db_meta_caps = {
+            # "sql_dialect": "clickhouse",
+            # "cost_tier": "standard",
+            # "max_result_rows": 5000,
+        }
+        mcp_ctx = {
+            "req": McpServerRequest(
+                request_id=req.request_id,
+                db=req.db,
+                request=req.request,
+                session_id=req.session_id,
+                model=req.model,
+                flow=req.flow,
+            ),
+            "flow_step_num": next(flow_step),  # for logging purposes
+        }
+
+        slot = await assembler.render_async(
+            "planner", variables=planner_vars, req_ctx=mcp_ctx, mcp_caps=db_meta_caps
+        )
+
+        intent_llm_system_prompt = slot.prompt_text
+
+        history = await get_history(db, req.session_id, include_responses=False)
+        if ai_model.get_name() != "gemini":
+            messages = [{"role": "system", "content": intent_llm_system_prompt}]
+            for item in history:
+                if item.get("content") is not None:
+                    messages.append(item)
+            messages.append({"role": "user", "content": req.request})
+
+        else:
+            messages = f"""
+                 {intent_llm_system_prompt}\n
+                 User input: {req.request}\n"""
+
+        logger.info(
+            "Prepared intent request",
+            flow_stage="intent",
+            flow_step_num=next(flow_step),
+            ai_request=messages,
+        )
+
+        user_intent = None
+        print(">>> PRE INTENT", stopwatch.lap())
+
+        try:
+            llm_response = ai_model.get_structured(
+                messages, IntentAnalysis, "gpt-4.1-2025-04-14"
+            )
+
+        except Exception as e:
+            logger.error(
+                "Error getting LLM response",
+                flow_stage="error_llm",
+                flow_step_num=next(flow_step),
+                error=str(e),
+            )
+            req.status = RequestStatus.error
+            req.err = str(e)
+            await update_request_status(RequestStatus.error, req.err, db, req.request_id)
+            return req
+
+        print(">>> POST INTENT", stopwatch.lap())
+
+        if ai_model.get_name() != "gemini":
+            messages.append({"role": "assistant", "content": llm_response})
+        else:
+            messages = f"""
+             {messages}\n
+             AI response: {llm_response}\n"""
+
+        logger.info(
+            "Got intent",
+            flow_stage="llm_intent",
+            flow_step_num=next(flow_step),
+            ai_response=llm_response,
+        )
+        await update_request_status(RequestStatus.intent, None, db, req.request_id)
+        if llm_response.intent:
+            user_intent = llm_response.intent
+            await update_request(
+                update=UpdateRequestModel(
+                    request_id=req.request_id, intent=llm_response.intent
+                ),
+                db=db,
+            )
+
+        user_intent_instruction = (
+            f"User intent: {llm_response.intent}" if llm_response.intent is not None else ""
+        )
 
     ### LINKED SESSION QUERY ###
     if (

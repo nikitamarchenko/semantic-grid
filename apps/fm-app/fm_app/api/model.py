@@ -36,6 +36,7 @@ class InteractiveRequestType(str, Enum):
     general_chat = "general_chat"
     disambiguation = "disambiguation"
     linked_session = "linked_session"
+    linked_query = "linked_query"
     # chart_request = "chart_request"
 
 

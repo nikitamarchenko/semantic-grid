@@ -139,7 +139,9 @@ export const getDecision = async (
 };
 
 const canonical = (metadata: any, field: string) =>
-  metadata.columns?.find((c: any) => c.id === field || c.column_name === field);
+  metadata?.columns?.find(
+    (c: any) => c.id === field || c.column_name === field,
+  );
 
 const enrichedContext = (selectedAction: string, context: string) => {
   if (context && context !== "General") {
@@ -188,7 +190,17 @@ const extractSortModelFromSQL = (
 };
 
 const signatureSubstrings = ["signature", "hash", "tx", "transaction"];
-const walletSubstrings = ["wallet", "address", "account", "mint"];
+const walletSubstrings = [
+  "wallet",
+  "address",
+  "account",
+  "mint",
+  "owner",
+  "trader",
+  "seller",
+  "from",
+  "to",
+];
 const tickerSubstrings = ["symbol", "ticker"];
 
 const columnWidth = (name: string) => {

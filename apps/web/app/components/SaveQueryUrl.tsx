@@ -3,7 +3,7 @@ import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import { Box, IconButton, Menu, MenuItem, Tooltip } from "@mui/material";
 import React, { useState } from "react";
 
-import { addQueryToUserDashboard } from "@/app/actions";
+import { addQueryToDashboard } from "@/app/actions";
 import type { TChatSection } from "@/app/lib/types";
 
 const SaveQueryUrl = ({ section }: { section: TChatSection }) => {
@@ -26,7 +26,7 @@ const SaveQueryUrl = ({ section }: { section: TChatSection }) => {
     console.log("save query Uid", queryUid, "as", type);
     if (!queryUid) return;
 
-    await addQueryToUserDashboard({ queryUid, itemType: type });
+    await addQueryToDashboard({ queryUid, itemType: type });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000); // Reset copied state after 2 seconds
     setAnchorEl(null);

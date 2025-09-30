@@ -221,6 +221,39 @@ export const attachQueryToDashboard = async (input: {
   return row ?? null; // null if already attached
 };
 
+export const attachQueryToUserDashboard = async (input: {
+  userId: string;
+  queryUid: string;
+  itemType: "chart" | "table";
+  chartType?: string;
+  position?: number;
+}) => {
+  const q = await getQuery({
+    queryUid: input.queryUid,
+  }).then((r) => r[0] || null);
+  // Find user's personal dashboard
+  const [d] = await db
+    .select()
+    .from(dashboards)
+    .where(eq(dashboards.ownerUserId, input.userId as any));
+  if (!d) {
+    throw new Error("User dashboard not found");
+  }
+  // Attach to it
+  const [row] = await db
+    .insert(dashboardItems)
+    .values({
+      dashboardId: d.id as any,
+      queryId: q?.id as any,
+      itemType: input.itemType,
+      chartType: input.chartType,
+      position: input.position ?? 0,
+    })
+    .onConflictDoNothing()
+    .returning();
+  return row ?? null; // null if already attached
+};
+
 export const detachQueryFromDashboard = async (
   dashboardId: string,
   queryUid: string,

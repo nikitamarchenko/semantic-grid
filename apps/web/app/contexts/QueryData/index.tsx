@@ -21,9 +21,9 @@ import React, {
   useState,
 } from "react";
 
+import { StyledValue } from "@/app/components/StyledValue";
 import { useInfiniteQuery } from "@/app/hooks/useInfiniteQuery";
 import type { TColumn } from "@/app/lib/types";
-import { StyledValue } from "@/app/components/StyledValue";
 
 export const options: Record<
   string,
@@ -100,7 +100,17 @@ const extractSortModelFromSQL = (
 };
 
 const signatureSubstrings = ["signature", "hash", "tx", "transaction"];
-const walletSubstrings = ["wallet", "address", "account", "mint"];
+const walletSubstrings = [
+  "wallet",
+  "address",
+  "account",
+  "mint",
+  "owner",
+  "trader",
+  "seller",
+  "from",
+  "to",
+];
 const tickerSubstrings = ["symbol", "ticker"];
 
 const columnWidth = (name: string) => {

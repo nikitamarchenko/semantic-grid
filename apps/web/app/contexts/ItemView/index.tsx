@@ -30,7 +30,6 @@ function useBaseUrl() {
 function readHash(): ViewKey | null {
   if (typeof window === "undefined") return null;
   const h = window.location.hash.replace(/^#/, "");
-  console.log("readHash", h);
   return VIEW_KEYS.includes(h as ViewKey) ? (h as ViewKey) : null;
 }
 
@@ -55,7 +54,6 @@ export const ItemViewProvider = ({
   };
 
   const hash = readHash();
-  console.log("ItemViewProvider", itemId, hash);
 
   // Resolve initial state (hash > localStorage > default)
   const initial = (readHash() ?? readLocal() ?? defaultView) as ViewKey;

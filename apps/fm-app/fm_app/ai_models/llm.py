@@ -118,6 +118,9 @@ class OpenAIModel(AIModel):
             model=model_name,
             messages=messages,
             response_format={"type": "json_object"},
+            extra_headers={
+                "OpenAI-Beta": "prompt-caching"
+            }
         )
         data = json.loads(
             resp.choices[0].message.content, object_hook=fix_nulls_and_convert_rows

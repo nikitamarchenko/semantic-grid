@@ -28,6 +28,9 @@ const fetcher = async ([url, id, limit, offset, sortBy, sortOrder]: [
   throw UnauthorizedError;
 };
 
+// Remove non-ASCII characters to avoid 400 error from API
+const sanitize = (str: string) => str.replace(/[^\x20-\x7E]+/g, "");
+
 export const useQuery = ({
   id,
   sql,
@@ -44,7 +47,7 @@ export const useQuery = ({
   sortOrder?: "asc" | "desc";
 }) => {
   // console.log("useQuery", id, limit, offset, sortBy, sortOrder);
-  const sqlHash = sql ? btoa(sql) : "";
+  const sqlHash = sql ? btoa(sanitize(sql)) : "";
   const { data, error, isLoading, isValidating, mutate } = useSWR(
     id && sql
       ? [`/api/apegpt/data`, id, limit, offset, sortBy, sortOrder, sqlHash]
@@ -61,6 +64,6 @@ export const useQuery = ({
       refreshInterval: 0,
     },
   );
-
+  console.log("useQuery data", id, data, error);
   return { data, error, isLoading, isValidating, mutate };
 };

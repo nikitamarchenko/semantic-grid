@@ -1,6 +1,7 @@
 "use client";
 
 import { Code, TableRows } from "@mui/icons-material";
+import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import type { AppBarProps } from "@mui/material";
 import {
   Alert,
@@ -18,7 +19,11 @@ import {
 import { useRouter } from "next/navigation";
 import React, { useContext, useState } from "react";
 
-import { createRequestFromQuery, createSession } from "@/app/actions";
+import {
+  addQueryToUserDashboard,
+  createRequestFromQuery,
+  createSession,
+} from "@/app/actions";
 import { AppContext } from "@/app/contexts/App";
 import { ThemeContext } from "@/app/contexts/Theme";
 import { useAppUser } from "@/app/hooks/useAppUser";
@@ -61,6 +66,7 @@ const ApplicationBar = ({ id }: any) => {
   const router = useRouter();
   const { mode, setMode, isLarge } = useContext(ThemeContext);
   const { user, authUser, error } = useAppUser();
+  console.log("app bar user", user);
   const { setNavOpen, tab, setTab } = useContext(AppContext);
   const {
     error: dataError,
@@ -131,6 +137,14 @@ const ApplicationBar = ({ id }: any) => {
     }
   };
 
+  const onAddToUserDashboard = async () => {
+    const userDashboardId = await addQueryToUserDashboard({
+      queryUid: id,
+      itemType: "table",
+    });
+    router.push(`${userDashboardId}`);
+  };
+
   const AppBar = isLarge ? StyledAppBar : ConstantAppBar;
 
   return (
@@ -173,6 +187,24 @@ const ApplicationBar = ({ id }: any) => {
                 onClick={onNewChat}
               >
                 <Box component={NewChatIcon} sx={{ color: "text.secondary" }} />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Add to User Dashboard">
+            <span>
+              <IconButton
+                // disableRipple
+                // disableTouchRipple
+                // disableFocusRipple
+                // disabled={!user}
+                aria-label="add to user dashboard"
+                edge="start"
+                onClick={onAddToUserDashboard}
+              >
+                <Box
+                  component={PlaylistAddIcon}
+                  sx={{ color: "text.secondary" }}
+                />
               </IconButton>
             </span>
           </Tooltip>
