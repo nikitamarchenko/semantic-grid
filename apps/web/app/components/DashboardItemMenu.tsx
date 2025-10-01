@@ -1,19 +1,32 @@
 import { MoreVert } from "@mui/icons-material";
 import { Box, Divider, IconButton, Menu, MenuItem } from "@mui/material";
+import { formatDistance } from "date-fns";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 import { deleteQueryFromDashboard, editDefaultItemView } from "@/app/actions";
 import type { TQuery } from "@/app/lib/types";
 
+export type TItemMenu = {
+  label: string;
+  key?: string;
+  isSeparator?: boolean;
+  destructive?: boolean;
+  disabled?: boolean;
+};
+
 export const DashboardItemMenu = ({
   id,
   query,
   slugPath,
+  refresh,
+  fetchedAt,
 }: {
   id: string;
   query: TQuery;
   slugPath: string;
+  refresh: () => void;
+  fetchedAt?: number;
 }) => {
   const router = useRouter();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -72,13 +85,16 @@ export const DashboardItemMenu = ({
           await deleteQueryFromDashboard({ queryUid: query.query_id }); // , dashboardId
         }
         break;
+      case "refresh":
+        refresh();
+        break;
       default:
         break;
     }
     handleClose();
   };
 
-  const ItemMenu = (user: boolean) =>
+  const ItemMenu = (user: boolean): TItemMenu[] =>
     user
       ? [
           { label: "Show as Table", key: "view-table" },
@@ -90,6 +106,8 @@ export const DashboardItemMenu = ({
           { label: "Delete", key: "delete", destructive: true },
         ]
       : [
+          { label: "Refresh", key: "refresh" },
+          { label: "Refreshed", key: "refreshed", disabled: true },
           { label: "View", key: "item" },
           { label: "Copy and edit", key: "copy" },
         ];
@@ -152,7 +170,9 @@ export const DashboardItemMenu = ({
                 }),
               }}
             >
-              {mi.label}
+              {mi.label === "Refreshed"
+                ? `Last fetched: ${!fetchedAt ? "never" : formatDistance(new Date(fetchedAt || 0), new Date(), { addSuffix: true })}`
+                : mi.label}
             </MenuItem>
           ),
         )}

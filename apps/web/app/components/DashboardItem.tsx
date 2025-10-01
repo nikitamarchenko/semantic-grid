@@ -12,6 +12,7 @@ import Link from "next/link";
 import { DashboardChartItem } from "@/app/components/DashboardChartItem";
 import { DashboardItemMenu } from "@/app/components/DashboardItemMenu";
 import { DashboardTableItem } from "@/app/components/DashboardTableItem";
+import { useQuery } from "@/app/hooks/useQuery";
 import { useQueryObject } from "@/app/hooks/useQueryObject";
 
 const DashboardCard = ({
@@ -37,6 +38,12 @@ const DashboardCard = ({
   const { data } = useQueryObject(queryUid!);
   console.log("card query data", data);
   const minHeight = maxItemsPerRow ? 400 * (3 / maxItemsPerRow) : 400;
+  const { refresh, fetchedAt } = useQuery({
+    id: queryUid,
+    sql: data?.sql,
+    limit: 20,
+    offset: 0,
+  });
 
   const inner = (
     <Card
@@ -59,7 +66,13 @@ const DashboardCard = ({
                   {title || data?.summary}
                 </Typography>
                 {data && (
-                  <DashboardItemMenu id={id} query={data} slugPath={slugPath} />
+                  <DashboardItemMenu
+                    id={id}
+                    query={data}
+                    slugPath={slugPath}
+                    refresh={refresh}
+                    fetchedAt={fetchedAt || undefined}
+                  />
                 )}
               </Stack>
             )}
