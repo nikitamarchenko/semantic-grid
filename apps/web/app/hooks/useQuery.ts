@@ -99,9 +99,7 @@ export const useQuery = ({
   );
 
   const fetchedAt = key ? getFreshness(serializeKey(key) as string) : null;
-  console.log("fetchedAt", id, key, fetchedAt);
 
-  console.log("useQuery data", id, key, data, error);
   return {
     data,
     error,
