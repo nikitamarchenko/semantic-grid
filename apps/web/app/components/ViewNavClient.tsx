@@ -1,23 +1,15 @@
 "use client";
 
-import {
-  AppBar,
-  Box,
-  Button,
-  Container,
-  IconButton,
-  Toolbar,
-  Tooltip,
-} from "@mui/material";
+import { AppBar, Box, Button, Container, Toolbar } from "@mui/material";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useContext } from "react";
 
 import { ItemViewSwitcher } from "@/app/components/ItemViewSwitcher";
 import { LabeledSwitch } from "@/app/components/LabeledSwitch";
+import { UserProfileMenu } from "@/app/components/UserProfileMenu";
 import { AppContext } from "@/app/contexts/App";
 import { ThemeContext } from "@/app/contexts/Theme";
-import ToggleMode from "@/app/icons/toggle-mode.svg";
 
 type Dashboard = {
   id: string;
@@ -92,21 +84,7 @@ const ViewNavClient = ({
 
           <LabeledSwitch checked={Boolean(editMode)} onClick={handleToggle} />
 
-          {/* <Button
-            component={Link}
-            href={`/grid?q=${item?.query?.queryUid}`}
-            variant="contained"
-            color="primary"
-            sx={{ textTransform: "none", ml: 2 }}
-          >
-            EDIT
-          </Button> */}
-
-          <Tooltip title="Toggle light/dark mode">
-            <IconButton onClick={toggleTheme} color="inherit">
-              <Box component={ToggleMode} sx={{ color: "text.secondary" }} />
-            </IconButton>
-          </Tooltip>
+          <UserProfileMenu />
         </Toolbar>
       </Container>
     </AppBar>

@@ -101,6 +101,8 @@ export const DashboardItemMenu = ({
           { label: "Show as Pie Chart", key: "view-chart-pie" },
           { label: "Show as Line Chart", key: "view-chart-line" },
           { label: "sep1", isSeparator: true },
+          { label: "Refresh", key: "refresh" },
+          { label: "Refreshed", key: "refreshed", disabled: true },
           { label: "View", key: "item" },
           { label: "Edit", key: "edit" },
           { label: "Delete", key: "delete", destructive: true },
@@ -109,7 +111,7 @@ export const DashboardItemMenu = ({
           { label: "Refresh", key: "refresh" },
           { label: "Refreshed", key: "refreshed", disabled: true },
           { label: "View", key: "item" },
-          { label: "Copy and edit", key: "copy" },
+          { label: "Clone and edit", key: "copy" },
         ];
 
   return (

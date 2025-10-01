@@ -1,5 +1,8 @@
 // app/(dash)/[[...section]]/page.tsx
+import { getSession } from "@auth0/nextjs-auth0";
+import { Button, Container, Paper, Stack, Typography } from "@mui/material";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import DashboardGrid from "@/app/components/DashboardGrid";
 import type { DashboardItem } from "@/app/lib/dashboards";
@@ -35,8 +38,10 @@ const typeToHash = (type: string) => {
 
 const Page = async ({ params }: { params: { section?: string[] } }) => {
   const slugPath = pathFromParams(params); // '/' | '/tokens' | '/trends' | '/traders' | '/user'
+  const isUserPage = slugPath.startsWith("/user/");
   const dMeta = await getDashboardByPath(slugPath);
   const d = await getDashboardData(dMeta?.id || "");
+  const session = await getSession();
 
   // map to DashboardGrid items
 
@@ -66,7 +71,7 @@ const Page = async ({ params }: { params: { section?: string[] } }) => {
 
   console.log("Dashboard items:", slugPath, items);
 
-  return (
+  return !isUserPage || session ? (
     <DashboardGrid
       slugPath={slugPath}
       title={dMeta?.name}
@@ -74,6 +79,30 @@ const Page = async ({ params }: { params: { section?: string[] } }) => {
       items={items}
       maxItemsPerRow={dMeta?.maxItemsPerRow || 3}
     />
+  ) : (
+    <Container maxWidth="md" sx={{ height: "80vh" }}>
+      <Paper elevation={0} sx={{ height: "100%" }}>
+        <Stack
+          direction="column"
+          alignItems="center"
+          justifyContent="center"
+          spacing={2}
+          sx={{ mt: 8, height: "100%" }}
+        >
+          <Typography>
+            Please log in to create, edit and view custom dashboards
+          </Typography>
+          <Button
+            component={Link}
+            href={`/api/auth/login?returnTo=${slugPath}`}
+            variant="contained"
+            size="large"
+          >
+            Log In
+          </Button>
+        </Stack>
+      </Paper>
+    </Container>
   );
 };
 

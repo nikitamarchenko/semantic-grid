@@ -15,10 +15,10 @@ import React, { useContext, useEffect } from "react";
 
 import { ItemViewSwitcher } from "@/app/components/ItemViewSwitcher";
 import { LabeledSwitch } from "@/app/components/LabeledSwitch";
+import { UserProfileMenu } from "@/app/components/UserProfileMenu";
 import { AppContext } from "@/app/contexts/App";
 import { ThemeContext } from "@/app/contexts/Theme";
 import ChatSelectorIcon from "@/app/icons/chat-selector.svg";
-import ToggleMode from "@/app/icons/toggle-mode.svg";
 
 type Dashboard = {
   id: string;
@@ -130,11 +130,7 @@ const GridItemNavClient = ({
             </span>
           </Tooltip>
 
-          <Tooltip title="Toggle light/dark mode">
-            <IconButton onClick={toggleTheme} color="inherit">
-              <Box component={ToggleMode} sx={{ color: "text.secondary" }} />
-            </IconButton>
-          </Tooltip>
+          <UserProfileMenu />
         </Toolbar>
       </Container>
     </AppBar>

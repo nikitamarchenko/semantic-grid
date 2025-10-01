@@ -1,23 +1,15 @@
 "use client";
 
-import {
-  AppBar,
-  Box,
-  Button,
-  Container,
-  IconButton,
-  Toolbar,
-  Tooltip,
-} from "@mui/material";
+import { AppBar, Box, Button, Container, Toolbar } from "@mui/material";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useContext, useEffect } from "react";
 
 import { createRequestFromQuery, createSession } from "@/app/actions";
 import { LabeledSwitch } from "@/app/components/LabeledSwitch";
+import { UserProfileMenu } from "@/app/components/UserProfileMenu";
 import { ThemeContext } from "@/app/contexts/Theme";
 import { useUserSessions } from "@/app/hooks/useUserSessions";
-import ToggleMode from "@/app/icons/toggle-mode.svg";
 
 type Dashboard = {
   id: string;
@@ -135,11 +127,7 @@ const GridNavClient = ({
 
           <LabeledSwitch checked />
 
-          <Tooltip title="Toggle light/dark mode">
-            <IconButton onClick={toggleTheme} color="inherit">
-              <Box component={ToggleMode} sx={{ color: "text.secondary" }} />
-            </IconButton>
-          </Tooltip>
+          <UserProfileMenu />
         </Toolbar>
       </Container>
     </AppBar>

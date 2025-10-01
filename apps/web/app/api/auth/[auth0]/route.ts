@@ -8,11 +8,13 @@ import {
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-function getUrls(req: Request) {
+function getUrls(req: NextRequest) {
   const host = (req.headers as any).get("host");
   const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
   const redirectUri = `${protocol}://${host}/api/auth/callback`;
-  const returnTo = `${protocol}://${host}`;
+  // get return to url from query params
+  const returnTo =
+    req.nextUrl.searchParams.get("returnTo") || `${protocol}://${host}`;
   return {
     redirectUri,
     returnTo,
@@ -52,7 +54,7 @@ const GET = handleAuth({
   login(req: NextRequest, ctx: AppRouteHandlerFnContext) {
     const { returnTo, redirectUri } = getUrls(req);
     return handleLogin(req, ctx, {
-      returnTo: `${returnTo}/query`,
+      returnTo,
       authorizationParams: {
         // prompt: "none",
         redirectUri,

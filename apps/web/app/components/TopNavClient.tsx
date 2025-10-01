@@ -5,20 +5,19 @@ import {
   Box,
   Button,
   Container,
-  IconButton,
   Toolbar,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 import { LabeledSwitch } from "@/app/components/LabeledSwitch";
+import { UserProfileMenu } from "@/app/components/UserProfileMenu";
 import { AppContext } from "@/app/contexts/App";
 import { ThemeContext } from "@/app/contexts/Theme";
-import ToggleMode from "@/app/icons/toggle-mode.svg";
+import { useAppUser } from "@/app/hooks/useAppUser";
 
 type Dashboard = {
   id: string;
@@ -48,6 +47,10 @@ const TopNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
   const items = dashboards.filter((d) => d.slug !== "/");
   const { mode, setMode } = useContext(ThemeContext);
   const { editMode, setEditMode } = useContext(AppContext);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const openMenu = Boolean(anchorEl);
+
+  const { user, authUser } = useAppUser();
 
   const handleToggle = () => {
     if (!editMode) {
@@ -62,6 +65,14 @@ const TopNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem("theme", next);
     }
+  };
+
+  const toggleUserProfile = (event: any) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
   };
 
   useEffect(() => {
@@ -112,11 +123,7 @@ const TopNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
 
           <LabeledSwitch checked={Boolean(editMode)} onClick={handleToggle} />
 
-          <Tooltip title="Toggle light/dark mode">
-            <IconButton onClick={toggleTheme} color="inherit">
-              <Box component={ToggleMode} sx={{ color: "text.secondary" }} />
-            </IconButton>
-          </Tooltip>
+          <UserProfileMenu />
         </Toolbar>
       </Container>
     </AppBar>
