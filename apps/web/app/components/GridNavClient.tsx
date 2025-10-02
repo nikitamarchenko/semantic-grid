@@ -1,12 +1,20 @@
 "use client";
 
-import { AppBar, Box, Button, Container, Toolbar } from "@mui/material";
+import { AutoAwesome } from "@mui/icons-material";
+import {
+  AppBar,
+  Box,
+  Button,
+  Container,
+  IconButton,
+  Toolbar,
+  Tooltip,
+} from "@mui/material";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useContext, useEffect } from "react";
 
 import { createRequestFromQuery, createSession } from "@/app/actions";
-import { LabeledSwitch } from "@/app/components/LabeledSwitch";
 import { UserProfileMenu } from "@/app/components/UserProfileMenu";
 import { ThemeContext } from "@/app/contexts/Theme";
 import { useUserSessions } from "@/app/hooks/useUserSessions";
@@ -125,7 +133,13 @@ const GridNavClient = ({
           {/* Spacer between primary nav and right-side controls */}
           <Box sx={{ flexGrow: 1 }} />
 
-          <LabeledSwitch checked />
+          {/* <LabeledSwitch checked /> */}
+
+          <Tooltip title="Editing With Semantic Grid AI">
+            <IconButton color="primary">
+              <AutoAwesome />
+            </IconButton>
+          </Tooltip>
 
           <UserProfileMenu />
         </Toolbar>

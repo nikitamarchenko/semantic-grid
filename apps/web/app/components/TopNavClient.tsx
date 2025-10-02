@@ -11,13 +11,11 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
 
-import { LabeledSwitch } from "@/app/components/LabeledSwitch";
+import { SemanticGridMenu } from "@/app/components/SemanticGridMenu";
 import { UserProfileMenu } from "@/app/components/UserProfileMenu";
 import { AppContext } from "@/app/contexts/App";
-import { ThemeContext } from "@/app/contexts/Theme";
-import { useAppUser } from "@/app/hooks/useAppUser";
 
 type Dashboard = {
   id: string;
@@ -45,34 +43,13 @@ const TopNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
   const router = useRouter();
   const pathname = usePathname();
   const items = dashboards.filter((d) => d.slug !== "/");
-  const { mode, setMode } = useContext(ThemeContext);
   const { editMode, setEditMode } = useContext(AppContext);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const openMenu = Boolean(anchorEl);
-
-  const { user, authUser } = useAppUser();
 
   const handleToggle = () => {
     if (!editMode) {
       router.push(`/grid`);
       setEditMode(pathname);
     }
-  };
-
-  const toggleTheme = () => {
-    const next = mode === "dark" ? "light" : "dark";
-    setMode(next);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("theme", next);
-    }
-  };
-
-  const toggleUserProfile = (event: any) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
   };
 
   useEffect(() => {
@@ -111,17 +88,9 @@ const TopNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
           {/* Spacer between primary nav and right-side controls */}
           <Box sx={{ flexGrow: 1 }} />
 
-          {/* <Button
-            component={Link}
-            href="/grid"
-            variant="contained"
-            color="primary"
-            sx={{ textTransform: "none", ml: 2 }}
-          >
-            NEW
-          </Button> */}
+          {/* <LabeledSwitch checked={Boolean(editMode)} onClick={handleToggle} /> */}
 
-          <LabeledSwitch checked={Boolean(editMode)} onClick={handleToggle} />
+          <SemanticGridMenu mode="explore" onActionClick={handleToggle} />
 
           <UserProfileMenu />
         </Toolbar>

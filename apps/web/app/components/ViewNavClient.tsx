@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import React, { useContext } from "react";
 
 import { ItemViewSwitcher } from "@/app/components/ItemViewSwitcher";
-import { LabeledSwitch } from "@/app/components/LabeledSwitch";
+import { SemanticGridMenu } from "@/app/components/SemanticGridMenu";
 import { UserProfileMenu } from "@/app/components/UserProfileMenu";
 import { AppContext } from "@/app/contexts/App";
 import { ThemeContext } from "@/app/contexts/Theme";
@@ -82,7 +82,9 @@ const ViewNavClient = ({
           {/* Second-level switcher: only shows on /item/[id] */}
           <ItemViewSwitcher />
 
-          <LabeledSwitch checked={Boolean(editMode)} onClick={handleToggle} />
+          {/* <LabeledSwitch checked={Boolean(editMode)} onClick={handleToggle} /> */}
+
+          <SemanticGridMenu mode="edit" onActionClick={handleToggle} />
 
           <UserProfileMenu />
         </Toolbar>

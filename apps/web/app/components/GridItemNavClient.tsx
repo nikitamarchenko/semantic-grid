@@ -1,24 +1,23 @@
 "use client";
 
 import {
+  Alert,
   AppBar,
   Box,
   Button,
   Container,
-  IconButton,
+  Stack,
   Toolbar,
-  Tooltip,
 } from "@mui/material";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useContext, useEffect } from "react";
 
 import { ItemViewSwitcher } from "@/app/components/ItemViewSwitcher";
-import { LabeledSwitch } from "@/app/components/LabeledSwitch";
+import { SemanticGridMenu } from "@/app/components/SemanticGridMenu";
 import { UserProfileMenu } from "@/app/components/UserProfileMenu";
 import { AppContext } from "@/app/contexts/App";
 import { ThemeContext } from "@/app/contexts/Theme";
-import ChatSelectorIcon from "@/app/icons/chat-selector.svg";
 
 type Dashboard = {
   id: string;
@@ -99,40 +98,31 @@ const GridItemNavClient = ({
 
           <ItemViewSwitcher />
 
-          <LabeledSwitch checked={Boolean(editMode)} onClick={handleToggle} />
+          {/* <LabeledSwitch checked /> */}
 
-          {/* <Button
-            component={Link}
-            href="#"
-            variant="contained"
-            color="primary"
-            sx={{ textTransform: "none", ml: 2 }}
-            onClick={onSaveClick}
-          >
-            SAVE
-          </Button> */}
-          <Tooltip title="Open chat selector">
-            <span>
-              <IconButton
-                // disableRipple
-                // disableTouchRipple
-                // disableFocusRipple
-                // disabled={!user}
-                aria-label="open drawer"
-                onClick={handleDrawerOpen}
-                // edge="start"
-              >
-                <Box
-                  component={ChatSelectorIcon}
-                  sx={{ color: "text.secondary" }}
-                />
-              </IconButton>
-            </span>
-          </Tooltip>
+          <SemanticGridMenu mode="editing" onActionClick={handleToggle} />
 
           <UserProfileMenu />
         </Toolbar>
       </Container>
+      <Alert
+        sx={{ height: 40, alignItems: "center" }}
+        // variant="filled"
+        severity="warning"
+        action={
+          <Stack direction="row">
+            <Button color="inherit" size="small">
+              Cancel
+            </Button>
+            <Button color="inherit" size="small">
+              Save
+            </Button>
+          </Stack>
+        }
+      >
+        You are now in Semantic Grid AI edit mode. When finished, save your work
+        in your User Dashboard.
+      </Alert>
     </AppBar>
   );
 };

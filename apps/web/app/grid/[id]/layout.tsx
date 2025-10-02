@@ -4,7 +4,6 @@ import { ensureSession } from "@/app/actions";
 import GridItemNavClient from "@/app/components/GridItemNavClient";
 import { ItemViewProvider } from "@/app/contexts/ItemView";
 import { getDashboards } from "@/app/lib/dashboards";
-import NavDrawer from "@/app/query/nav-drawer";
 
 const GridLayout = async ({
   children,
@@ -23,7 +22,7 @@ const GridLayout = async ({
         uid={uid}
         dashboardId={dashboardId}
       />
-      <NavDrawer anchor="right" base="grid" />
+      {/* <NavDrawer anchor="right" base="grid" /> */}
       <main>{children}</main>
     </ItemViewProvider>
   );

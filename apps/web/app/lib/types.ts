@@ -63,6 +63,18 @@ export type TQueryMetadata = {
   result?: string;
 };
 
+export type TUserSession = {
+  created_at: string;
+  message_count: number;
+  metadata: TQueryMetadata;
+  name: string;
+  parent: any;
+  refs: any;
+  session_id: string;
+  tags: string;
+  user: string;
+};
+
 export type TStructuredResponse = {
   request: string;
   sql?: string;
