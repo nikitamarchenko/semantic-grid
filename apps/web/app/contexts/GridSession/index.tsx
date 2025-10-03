@@ -528,7 +528,7 @@ export const GridSessionProvider = ({
     (c: any) =>
       c.id === sortModel[0]?.field || c.column_name === sortModel[0]?.field,
   );
-  const sortBy = sortByCol?.id;
+  const sortBy = sortByCol?.id?.replace("col_", "");
   const sortOrder = sortModel[0]?.sort || "asc";
 
   const {
