@@ -1,22 +1,16 @@
 "use client";
 
-import {
-  Alert,
-  AppBar,
-  Box,
-  Button,
-  Container,
-  Stack,
-  Toolbar,
-} from "@mui/material";
+import { AppBar, Box, Button, Container, Toolbar } from "@mui/material";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useContext, useEffect } from "react";
 
+import { addQueryToUserDashboard } from "@/app/actions";
 import { ItemViewSwitcher } from "@/app/components/ItemViewSwitcher";
 import { SemanticGridMenu } from "@/app/components/SemanticGridMenu";
 import { UserProfileMenu } from "@/app/components/UserProfileMenu";
 import { AppContext } from "@/app/contexts/App";
+import { useItemViewContext } from "@/app/contexts/ItemView";
 import { ThemeContext } from "@/app/contexts/Theme";
 
 type Dashboard = {
@@ -26,25 +20,40 @@ type Dashboard = {
 };
 
 const GridItemNavClient = ({
+  id,
   dashboards,
   uid,
   dashboardId,
+  metadata,
+  queryUid,
 }: {
+  id: string;
   dashboards: Dashboard[];
   uid?: string;
   dashboardId?: string;
+  metadata?: any;
+  queryUid?: string;
 }) => {
   const router = useRouter();
   const pathname = usePathname();
   const items = dashboards.filter((d) => d.slug !== "/");
-  console.log("nav items", items, pathname);
   const { mode, setMode } = useContext(ThemeContext);
   const { setNavOpen, editMode, setEditMode } = useContext(AppContext);
+  const { view } = useItemViewContext();
+  console.log("grid nav items", metadata, queryUid);
 
   const handleToggle = () => {
-    if (editMode) {
-      router.replace(editMode);
+    if (editMode && queryUid) {
+      addQueryToUserDashboard({
+        queryUid,
+        itemType: view === "chart" ? "chart" : "table",
+      }).then(() => {
+        setEditMode("");
+        router.replace(editMode);
+      });
+    } else {
       setEditMode("");
+      router.replace(editMode);
     }
   };
 
@@ -96,16 +105,20 @@ const GridItemNavClient = ({
           {/* Spacer between primary nav and right-side controls */}
           <Box sx={{ flexGrow: 1 }} />
 
-          <ItemViewSwitcher />
+          {metadata && <ItemViewSwitcher />}
 
           {/* <LabeledSwitch checked /> */}
 
-          <SemanticGridMenu mode="editing" onActionClick={handleToggle} />
+          <SemanticGridMenu
+            mode="editing"
+            onActionClick={handleToggle}
+            hasQuery={Boolean(metadata)}
+          />
 
           <UserProfileMenu />
         </Toolbar>
       </Container>
-      <Alert
+      {/* <Alert
         sx={{ height: 40, alignItems: "center" }}
         // variant="filled"
         severity="warning"
@@ -122,7 +135,7 @@ const GridItemNavClient = ({
       >
         You are now in Semantic Grid AI edit mode. When finished, save your work
         in your User Dashboard.
-      </Alert>
+      </Alert> */}
     </AppBar>
   );
 };

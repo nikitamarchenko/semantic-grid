@@ -113,14 +113,15 @@ export const DashboardItemMenu = ({
           { label: "Refresh", key: "refresh" },
           { label: "Refreshed", key: "refreshed", disabled: true },
           { label: "View", key: "item" },
-          { label: "Edit", key: "edit" },
+          { label: "Edit with Semantic Grid AI", key: "edit" },
+          { label: "sep2", isSeparator: true },
           { label: "Delete", key: "delete", destructive: true },
         ]
       : [
           { label: "Refresh", key: "refresh" },
           { label: "Refreshed", key: "refreshed", disabled: true },
           { label: "View", key: "item" },
-          { label: "Clone and edit", key: "copy" },
+          { label: "Clone with Semantic Grid AI", key: "copy" },
         ];
 
   return (

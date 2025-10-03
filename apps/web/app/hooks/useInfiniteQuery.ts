@@ -78,7 +78,7 @@ export const useInfiniteQuery = ({
       },
     );
 
-  console.log("useInfiniteQuery", data, size, isLoading, isValidating);
+  // console.log("useInfiniteQuery", data, size, isLoading, isValidating);
   const rows = data?.flatMap((page) => page.rows) ?? [];
   const totalRows = data?.[0]?.total_rows ?? 0;
   const isReachingEnd = rows.length >= totalRows;

@@ -4,16 +4,19 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  alpha,
   Divider,
   IconButton,
   Menu,
   MenuItem,
+  Paper,
+  Popover,
   Tooltip,
   Typography,
 } from "@mui/material";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import { AppContext } from "@/app/contexts/App";
 import { byTime, toUserHistoryEntry } from "@/app/helpers/nav";
@@ -37,12 +40,16 @@ const colors = {
 export const SemanticGridMenu = ({
   mode = "explore",
   onActionClick,
+  hasQuery = false,
 }: {
   mode: TSemanticGridMode;
   onActionClick: () => void;
+  hasQuery?: boolean;
 }) => {
   const router = useRouter();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [popperEl, setPopperEl] = useState<null | HTMLElement>(null);
+  const ref = useRef();
   const { user, authUser } = useAppUser();
   const {
     data: sessions,
@@ -55,6 +62,7 @@ export const SemanticGridMenu = ({
   const handleToggle = () => {};
 
   useEffect(() => {
+    setPopperEl(ref?.current || null);
     if (!editMode) {
       setEditMode("/");
     }
@@ -86,7 +94,7 @@ export const SemanticGridMenu = ({
 
   return (
     <>
-      <Tooltip title={tooltips[mode]}>
+      <Tooltip title={tooltips[mode]} ref={ref}>
         <IconButton
           color={openMenu ? "primary" : (colors[mode] as any)}
           onClick={handleButtonClick}
@@ -99,6 +107,36 @@ export const SemanticGridMenu = ({
           <AutoAwesome />
         </IconButton>
       </Tooltip>
+      {mode === "editing" && (
+        <Popover
+          // id={id}
+          open={Boolean(popperEl)}
+          anchorEl={popperEl}
+          onClose={() => setPopperEl(null)}
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "right",
+          }}
+          transformOrigin={{
+            vertical: "top",
+            horizontal: "right",
+          }}
+        >
+          <Paper
+            elevation={1}
+            sx={{
+              border: "1px solid #EF8626",
+              backgroundColor: alpha("#EF8626", 0.1),
+            }}
+          >
+            <Typography sx={{ p: 2 }}>
+              You are now in Semantic Grid AI edit mode.
+              <br /> Click the icon above to navigate options.
+              <br /> When finished, save your work in your User Dashboard.
+            </Typography>
+          </Paper>
+        </Popover>
+      )}
       <Menu
         anchorEl={anchorEl}
         elevation={1}
@@ -128,7 +166,9 @@ export const SemanticGridMenu = ({
           </MenuItem>
         )}
         {mode === "editing" && (
-          <MenuItem onClick={onActionClick}>End session</MenuItem>
+          <MenuItem disabled={!hasQuery} onClick={onActionClick}>
+            Save and end session
+          </MenuItem>
         )}
         {mode === "editing" && (
           <MenuItem onClick={onActionClick}>New session</MenuItem>
