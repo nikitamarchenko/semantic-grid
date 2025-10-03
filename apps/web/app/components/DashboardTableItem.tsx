@@ -62,13 +62,13 @@ export const DashboardTableItem = ({
   const { data: query, isLoading: queryObjectIsLoading } =
     useQueryObject(queryUid);
 
-  console.log("query", query);
+  // console.log("query", query);
 
   const {
     data,
     error: dataError,
     isLoading,
-    isValidating,
+    isRefreshing,
   } = useQuery({
     id: query?.query_id,
     sql: query?.sql,
@@ -107,7 +107,7 @@ export const DashboardTableItem = ({
       rows={rows}
       // rowCount={rowCount}
       columns={gridColumns}
-      loading={isLoading || queryObjectIsLoading} // isLoading ? true : false
+      loading={isLoading || queryObjectIsLoading || isRefreshing} // isLoading ? true : false
       sx={{
         border: "none", // remove outer border
         fontSize: "1rem",

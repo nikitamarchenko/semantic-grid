@@ -29,13 +29,15 @@ export const DashboardChartItem = ({
     data,
     error: dataError,
     isLoading,
-    isValidating,
+    isRefreshing,
   } = useQuery({
     id: query?.query_id,
     sql: query?.sql,
     limit: 20,
     offset: 0,
   });
+
+  console.log("is refreshing", isRefreshing);
 
   const gridColumns: GridColDef[] = useMemo(() => {
     if (!query) return [];
@@ -81,7 +83,7 @@ export const DashboardChartItem = ({
           width={(minHeight * 1.5) / 3}
           height={minHeight}
         />
-        {isLoading && (
+        {(isLoading || isRefreshing) && (
           <Box
             position="absolute"
             top={0}
@@ -111,7 +113,7 @@ export const DashboardChartItem = ({
         >
           <ChartsTooltip /> {/* enables tooltips for all series at hovered X */}
         </LineChart>
-        {isLoading && (
+        {(isLoading || isRefreshing) && (
           <Box
             position="absolute"
             top={0}

@@ -34,9 +34,9 @@ const DashboardCard = ({
   slugPath: string;
   maxItemsPerRow: number;
 }) => {
-  console.log("card", { id, title, href, type, subtype, queryUid });
+  // console.log("card", { id, title, href, type, subtype, queryUid });
   const { data } = useQueryObject(queryUid!);
-  console.log("card query data", data);
+  // console.log("card query data", data);
   const minHeight = maxItemsPerRow ? 400 * (3 / maxItemsPerRow) : 400;
   const { refresh, fetchedAt } = useQuery({
     id: queryUid,

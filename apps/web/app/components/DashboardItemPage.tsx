@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { LineChart, PieChart } from "@mui/x-charts";
 import type { GridColDef } from "@mui/x-data-grid";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGridPro as DataGrid } from "@mui/x-data-grid-pro";
 import React, { useMemo } from "react";
 
 import HighlightedSQL from "@/app/components/SqlView";
@@ -38,7 +38,6 @@ export const DashboardItemPage = ({
   itemType?: string;
   chartType?: string;
 }) => {
-  console.log("page", query, itemType, chartType);
   const {
     data,
     error: dataError,
@@ -51,7 +50,6 @@ export const DashboardItemPage = ({
   });
 
   const { view } = useItemViewContext();
-  console.log("view", view);
 
   const gridColumns: GridColDef[] = useMemo(() => {
     if (!query) return [];

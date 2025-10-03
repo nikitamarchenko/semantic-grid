@@ -373,6 +373,7 @@ export const InteractiveDashboard = ({
         justifyContent: "center",
         overflowX: "hidden",
         overflowY: hasData ? "auto" : "visible", // disable internal scroll
+        // border: "1px solid #EF8626",
       }}
     >
       {/* Left pane - chat */}

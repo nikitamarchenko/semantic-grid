@@ -1,3 +1,4 @@
+import { useCallback, useMemo, useState } from "react";
 import useSWR, { unstable_serialize, useSWRConfig } from "swr";
 
 export const UnauthorizedError = new Error("Unauthorized");
@@ -8,24 +9,24 @@ type Freshness = Record<string, number>;
 
 const serializeKey = (key: any) => (key ? unstable_serialize(key) : null);
 
-function readFreshness(): Freshness {
+const readFreshness = (): Freshness => {
   try {
     return JSON.parse(localStorage.getItem(LS_KEY) || "{}") as Freshness;
   } catch {
     return {};
   }
-}
+};
 
-export function setFreshness(key: string, ts = Date.now()) {
+export const setFreshness = (key: string, ts = Date.now()) => {
   const f = readFreshness();
   f[key] = ts;
   localStorage.setItem(LS_KEY, JSON.stringify(f));
-}
+};
 
-export function getFreshness(key: string): number | null {
+export const getFreshness = (key: string): number | null => {
   const f = readFreshness();
   return typeof f[key] === "number" ? f[key] : null;
-}
+};
 
 const fetcher = async ([url, id, limit, offset, sortBy, sortOrder]: [
   url: string,
@@ -72,6 +73,7 @@ export const useQuery = ({
   sortOrder?: "asc" | "desc";
 }) => {
   const { mutate: mutateCache } = useSWRConfig();
+  const [force, setForce] = useState<boolean>(false);
 
   // console.log("useQuery", id, limit, offset, sortBy, sortOrder);
   // const sqlHash = sql ? btoa(sanitize(sql)) : "";
@@ -92,7 +94,7 @@ export const useQuery = ({
       refreshWhenHidden: false,
       refreshInterval: 0,
       onSuccess(data, k, c) {
-        console.log("useQuery onSuccess", id, k);
+        // console.log("useQuery onSuccess", id, k);
         if (k) setFreshness(k as string);
       },
     },
@@ -100,14 +102,31 @@ export const useQuery = ({
 
   const fetchedAt = key ? getFreshness(serializeKey(key) as string) : null;
 
+  const refresh = useCallback(async () => {
+    if (!key) return;
+    setForce(true);
+    try {
+      await mutate();
+    } finally {
+      setForce(false);
+      setFreshness(serializeKey(key) as string);
+    }
+  }, [key]);
+
+  const isRefreshing = useMemo(
+    () => force || isValidating,
+    [isValidating, force],
+  );
+
   return {
     data,
     error,
     isLoading,
     isValidating,
+    isRefreshing,
     mutate,
     mutateCache,
-    refresh: () => key && mutate(),
+    refresh,
     fetchedAt,
   };
 };
