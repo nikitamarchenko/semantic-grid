@@ -1,5 +1,14 @@
 import { MoreVert } from "@mui/icons-material";
-import { Box, Divider, IconButton, Menu, MenuItem } from "@mui/material";
+import {
+  Box,
+  ClickAwayListener,
+  Divider,
+  IconButton,
+  MenuItem,
+  MenuList,
+  Paper,
+  Popper,
+} from "@mui/material";
 import { formatDistance } from "date-fns";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -39,7 +48,7 @@ export const DashboardItemMenu = ({
     (e as MouseEvent).preventDefault?.();
     // in stubborn cases (Next.js Link on parent), also:
     // @ts-ignore
-    e.nativeEvent?.stopImmediatePropagation?.();
+    // e.nativeEvent?.stopImmediatePropagation?.();
   };
 
   const handleButtonClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -129,56 +138,66 @@ export const DashboardItemMenu = ({
         <MoreVert />
       </IconButton>
 
-      <Menu
+      <Popper
         disablePortal
         anchorEl={anchorEl}
         open={open}
-        onClose={handleCloseWithStop}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-        transformOrigin={{ vertical: "top", horizontal: "center" }}
-        // Stop events inside the menu before they escape
-        MenuListProps={{
-          "aria-labelledby": "dashboard-item-menu-button",
-          onClick: (e: React.MouseEvent) => stop(e),
-          onMouseDown: (e: React.MouseEvent) => stop(e),
-        }}
-        // Also attach to the paper element for safety (menus render in a portal)
-        slotProps={{
-          paper: {
-            onClick: (e: React.MouseEvent) => stop(e),
-            onMouseDown: (e: React.MouseEvent) => stop(e),
-          },
-        }}
+        style={{ pointerEvents: "auto", zIndex: 1300 }} // or theme.zIndex.modal
+        modifiers={
+          [
+            // { name: "offset", options: { offset: [0, 4] } },
+            // { name: "preventOverflow", options: { padding: 8 } },
+            // { name: "flip", options: { fallbackPlacements: ["top-start"] } },
+            // Ensure event listeners are on for scroll/resize:
+            // { name: "eventListeners", enabled: true },
+          ]
+        }
       >
-        {ItemMenu(user).map((mi) =>
-          mi.isSeparator ? (
-            <Divider key={mi.label} />
-          ) : (
-            <MenuItem
-              key={mi.label}
-              disabled={(mi as any)?.disabled}
-              onMouseDown={(e) => stop(e)}
-              onClick={(e) => handleMenuChoice(mi.key!, e)}
-              sx={{
-                minWidth: 140,
-                ...(mi.destructive && {
-                  color: "error.main",
-                  fontWeight: 600,
-                  "&:hover": {
-                    bgcolor: (t) => t.palette.error.light,
-                    color: "error.main",
-                  },
-                  "&.Mui-focusVisible": { color: "error.main" },
-                }),
+        <Paper
+          onClick={(e) => stop(e)}
+          onMouseDown={(e) => stop(e)}
+          sx={{ minWidth: 140, bgcolor: "background.paper" }}
+        >
+          <ClickAwayListener onClickAway={handleClose}>
+            <MenuList
+              autoFocusItem={false} // 👈 avoid initial “stuck” highlight
+              aria-labelledby="dashboard-item-menu-button"
+              onKeyDown={(e) => {
+                if (e.key === "Escape") handleClose();
               }}
             >
-              {mi.label === "Refreshed"
-                ? `Last fetched: ${!fetchedAt ? "never" : formatDistance(new Date(fetchedAt || 0), new Date(), { addSuffix: true })}`
-                : mi.label}
-            </MenuItem>
-          ),
-        )}
-      </Menu>
+              {ItemMenu(user).map((mi) =>
+                mi.isSeparator ? (
+                  <Divider key={mi.label} />
+                ) : (
+                  <MenuItem
+                    key={mi.label}
+                    disabled={(mi as any)?.disabled}
+                    onMouseDown={(e) => stop(e)}
+                    onClick={(e) => handleMenuChoice(mi.key!, e)}
+                    sx={{
+                      minWidth: 140,
+                      ...(mi.destructive && {
+                        color: "error.main",
+                        fontWeight: 600,
+                        "&:hover": {
+                          bgcolor: (t) => t.palette.error.light,
+                          color: "error.main",
+                        },
+                        "&.Mui-focusVisible": { color: "error.main" },
+                      }),
+                    }}
+                  >
+                    {mi.label === "Refreshed"
+                      ? `Last fetched: ${!fetchedAt ? "never" : formatDistance(new Date(fetchedAt || 0), new Date(), { addSuffix: true })}`
+                      : mi.label}
+                  </MenuItem>
+                ),
+              )}
+            </MenuList>
+          </ClickAwayListener>
+        </Paper>
+      </Popper>
     </Box>
   );
 };
