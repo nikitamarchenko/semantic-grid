@@ -23,8 +23,8 @@ import { useUserSessions } from "@/app/hooks/useUserSessions";
 export type TSemanticGridMode = "explore" | "edit" | "editing";
 
 const tooltips = {
-  explore: "Explore with Semantic Grid AI",
-  edit: "Edit with Semantic Grid AI",
+  explore: "Explore data with Semantic Grid AI",
+  edit: "Edit query with Semantic Grid AI",
   editing: "Editing with Semantic Grid AI",
 };
 

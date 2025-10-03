@@ -113,8 +113,9 @@ class OpenAIModel(AIModel):
             )
 
         model_name = model_override or OpenAIModel.llm_name
+        temperature = 1 if model_name.startswith("gpt-5") else 0
         resp = OpenAIModel._client.chat.completions.create(
-            temperature=1 if model_name.startswith("gpt-5") else 0,
+            temperature=temperature,
             model=model_name,
             messages=messages,
             response_format={"type": "json_object"},
@@ -125,7 +126,7 @@ class OpenAIModel(AIModel):
         data = json.loads(
             resp.choices[0].message.content, object_hook=fix_nulls_and_convert_rows
         )
-        print("DATA", data)
+        print("LLM OUT", model_name, temperature, data)
         return step(**data)
 
 

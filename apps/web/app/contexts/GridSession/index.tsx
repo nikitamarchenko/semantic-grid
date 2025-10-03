@@ -528,7 +528,7 @@ export const GridSessionProvider = ({
     (c: any) =>
       c.id === sortModel[0]?.field || c.column_name === sortModel[0]?.field,
   );
-  const sortBy = sortByCol?.column_name;
+  const sortBy = sortByCol?.id;
   const sortOrder = sortModel[0]?.sort || "asc";
 
   const {
@@ -710,11 +710,9 @@ export const GridSessionProvider = ({
       activeColumn.field !== "__add_column__" &&
       activeColumn.field !== "general"
         ? [
-            canonical(metadata, activeColumn.field)?.column_name,
+            canonical(metadata, activeColumn.field)?.id,
             ...data.map((r) =>
-              r[
-                canonical(metadata, activeColumn.field)?.column_name
-              ]?.toString(),
+              r[canonical(metadata, activeColumn.field)?.id]?.toString(),
             ),
           ]
         : undefined,

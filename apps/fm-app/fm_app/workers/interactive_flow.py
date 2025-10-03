@@ -184,10 +184,9 @@ async def interactive_flow(
         print(">>> PRE LINKED QUERY", stopwatch.lap())
         await update_request_status(RequestStatus.intent, None, db, req.request_id)
 
-
         try:
             llm_response = ai_model.get_structured(
-                messages, QueryMetadata, "gpt-4.1-2025-04-14"
+                messages, IntentAnalysis, "gpt-4.1-mini-2025-04-14" # "gpt-4.1-2025-04-14"
             )
 
         except Exception as e:
@@ -213,7 +212,16 @@ async def interactive_flow(
                      {messages}\n
                      AI response: {llm_response}\n"""
 
-        new_metadata = llm_response.model_dump()
+        # copy dict from request_session.metadata
+        new_metadata_dict = {
+            "id": str(uuid.uuid4()),
+            "summary":  llm_response.intent,
+            "description": llm_response.intent,
+            "sql": req.query.sql,
+            # for columns, we need to convert list[Column] to list[dict]
+            "columns": [c.model_dump() for c in req.query.columns] ,
+            "row_count": req.query.row_count,
+        }
 
         # complete the flow
         logger.info(
@@ -221,23 +229,23 @@ async def interactive_flow(
             flow_stage="end",
             flow_step_num=next(flow_step),
             flow=req.flow,
-            metadata=new_metadata,
+            intent=llm_response.intent,
         )
         await update_query_metadata(
             session_id=req.session_id,
             user_owner=req.user,
-            metadata=new_metadata,
+            metadata=new_metadata_dict,
             db=db,
         )
         await update_request_status(RequestStatus.done, None, db, req.request_id)
-        req.response = llm_response.result
+        req.response = llm_response.intent
         req.structured_response = StructuredResponse(
-            intent=llm_response.summary,
-            description=llm_response.description,
-            intro=llm_response.result,
-            sql=llm_response.sql,
-            metadata=new_metadata,
-            refs=req.refs,
+            intent=llm_response.intent,
+            description=llm_response.intent,
+            intro=None,
+            sql=req.query.sql,
+            metadata=QueryMetadata(**new_metadata_dict),
+            refs=None,
         )
 
         print(">>> DONE LINKED QUERY", stopwatch.lap())
