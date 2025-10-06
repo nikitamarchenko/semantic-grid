@@ -1,4 +1,4 @@
-FROM python:3.13-slim-bookworm AS builder
+FROM python:3.13-bookworm AS builder
 
 # Copy uv from uv image
 COPY --from=ghcr.io/astral-sh/uv:0.8.22 /uv /uvx /bin/
