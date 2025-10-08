@@ -1,4 +1,4 @@
-import { getDashboards } from "@/app/lib/dashboards";
+import { getDashboards } from "@/app/lib/payload";
 
 import TopNavClient from "../components/TopNavClient";
 

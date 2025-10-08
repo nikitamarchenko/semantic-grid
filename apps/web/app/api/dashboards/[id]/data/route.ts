@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getDashboardData } from "@/app/lib/dashboards";
+import { getDashboardData } from "@/app/lib/payload";
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   if (!params.id)

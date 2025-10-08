@@ -3,7 +3,7 @@ import React from "react";
 
 import { ensureSession } from "@/app/actions";
 import GridNavClient from "@/app/components/GridNavClient";
-import { getDashboards } from "@/app/lib/dashboards";
+import { getDashboards } from "@/app/lib/payload";
 
 const HomePage = async () => {
   const { uid, dashboardId } = await ensureSession();

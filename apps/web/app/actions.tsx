@@ -7,13 +7,6 @@ import { redirect } from "next/navigation";
 import { getUserAuthSession } from "@/app/lib/authUser";
 import { sendEmail } from "@/app/lib/awsSes";
 import {
-  attachQueryToDashboard,
-  attachQueryToUserDashboard,
-  changeDefaultView,
-  detachQueryFromDashboard,
-  ensureUserAndDashboard,
-} from "@/app/lib/dashboards";
-import {
   createLinkedUserSession,
   createUserRequest,
   createUserRequestFromQuery,
@@ -25,6 +18,13 @@ import {
   updateUserRequest,
   updateUserSession,
 } from "@/app/lib/gptAPI";
+import {
+  attachQueryToDashboard,
+  attachQueryToUserDashboard,
+  changeDefaultView,
+  detachQueryFromDashboard,
+  ensureUserAndDashboard,
+} from "@/app/lib/payload";
 
 const byTime = (a: any, b: any) =>
   new Date(b.created_at).getTime() - new Date(a.created_at).getTime();

@@ -1,6 +1,6 @@
 import { DashboardItemPage } from "@/app/components/DashboardItemPage";
-import { getDashboardItemData } from "@/app/lib/dashboards";
 import { getQuery } from "@/app/lib/gptAPI";
+import { getDashboardItemData } from "@/app/lib/payload";
 
 const Page = async ({ params: { id } }: { params: { id: string } }) => {
   const item = await getDashboardItemData(id);

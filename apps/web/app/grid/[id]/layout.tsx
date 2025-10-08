@@ -3,8 +3,8 @@ import React from "react";
 import { ensureSession } from "@/app/actions";
 import GridItemNavClient from "@/app/components/GridItemNavClient";
 import { ItemViewProvider } from "@/app/contexts/ItemView";
-import { getDashboards } from "@/app/lib/dashboards";
 import { getAllUserRequestsForSession, getUserSession } from "@/app/lib/gptAPI";
+import { getDashboards } from "@/app/lib/payload";
 
 const GridLayout = async ({
   children,

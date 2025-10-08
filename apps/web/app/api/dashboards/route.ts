@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import {
-  createDashboard,
+  // createDashboard,
   getDashboardByPath,
   getDashboards,
-} from "@/app/lib/dashboards";
+} from "@/app/lib/payload";
 
 const CreateDash = z.object({
   name: z.string().min(1),
@@ -34,6 +34,6 @@ export async function POST(req: Request) {
   const parsed = CreateDash.safeParse(body);
   if (!parsed.success)
     return NextResponse.json({ error: parsed.error.format() }, { status: 400 });
-  const row = await createDashboard(parsed.data);
+  const row = null; // = await createDashboard(parsed.data);
   return NextResponse.json(row, { status: 201 });
 }

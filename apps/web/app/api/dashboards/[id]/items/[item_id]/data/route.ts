@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getDashboardItemData } from "@/app/lib/dashboards";
+import { getDashboardItemData } from "@/app/lib/payload";
 
 export async function GET(
   _: Request,

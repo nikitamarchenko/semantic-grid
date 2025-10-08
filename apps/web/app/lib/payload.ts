@@ -1,66 +1,76 @@
-// Legacy dashboard management (postgres + drizzle-orm)
-
 "use server";
 
 import { readFile } from "node:fs/promises";
 
-import { and, eq, isNull, or } from "drizzle-orm";
 import * as jose from "jose";
-import type { Layout } from "react-grid-layout";
+import { stringify } from "qs-esm";
 
-import { db } from "@/app/db";
-import { dashboardItems, dashboards, queries, users } from "@/app/db/schema";
+import type { Dashboard, DashboardItem } from "@/app/lib/payload-types";
 
-
-export type Dashboard = {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  ownerUserId?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  items?: DashboardItem[];
-  // layout?: any; // react-grid-layout layout
-  maxItemsPerRow?: number;
-};
-
-export type DashboardItem = {
-  id: string;
-  position?: number;
-  name?: string;
-  description?: string;
-  dashboardId: string;
-  queryId: string;
-  type?: "chart" | "table";
-  itemType: "chart" | "table";
-  chartType?: string; // e.g., 'bar', 'line', etc.
-  createdAt?: string;
-  updatedAt?: string;
-  layout?: Layout; // react-grid-layout layout
-};
-
-export type Query = {
-  id: string;
-  queryUid: string; // reference to the actual query object
-  description?: string;
-  createdAt?: string;
-  updatedAt?: string;
+export const getFromPayload = async (collection: string, query?: string) => {
+  const url = new URL(
+    `/api/${collection}${query || ""}`,
+    process.env.PAYLOAD_API_URL,
+  );
+  const res = await fetch(url.toString(), {
+    headers: {
+      // 'Authorization': `Bearer ${process.env.PAYLOAD_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+  });
+  if (!res.ok) {
+    throw new Error(
+      `Error fetching from Payload: ${res.status} ${res.statusText}`,
+    );
+  }
+  return res.json();
 };
 
 export const getDashboards = async (userId?: string) => {
   if (!userId) {
-    return db.select().from(dashboards).orderBy(dashboards.createdAt);
-  }
-  const userDashboards = await db
-    .select()
-    .from(dashboards)
-    .orderBy(dashboards.createdAt)
-    .where(
-      or(eq(dashboards.ownerUserId, userId), isNull(dashboards.ownerUserId)),
+    const where = {};
+    const query = stringify(
+      {
+        where,
+        limit: 1000,
+        sort: "createdAt",
+      },
+      { addQueryPrefix: true },
     );
-
-  return userDashboards.map((d) => ({
+    const dashboards = await getFromPayload("dashboards", query).then(
+      (r) => r?.docs || [],
+    );
+    return dashboards.map((d: Dashboard) => ({
+      ...d,
+      layout: {
+        i: d.id,
+        x: 0,
+        y: 0,
+        w: 12 / (d.maxItemsPerRow || 3),
+        h: 2,
+        static: true,
+      },
+      // slug: d.slug.startsWith("/user") ? "/user" : d.slug,
+    }));
+  }
+  const where = {
+    or: [
+      { ownerUserId: { equals: userId } },
+      { ownerUserId: { equals: null } },
+    ],
+  };
+  const query = stringify(
+    {
+      where,
+      limit: 1000,
+      sort: "createdAt",
+    },
+    { addQueryPrefix: true },
+  );
+  const userDashboards = await getFromPayload("dashboards", query).then(
+    (r) => r?.docs || [],
+  );
+  return userDashboards.map((d: Dashboard) => ({
     ...d,
     layout: {
       i: d.id,
@@ -76,93 +86,68 @@ export const getDashboards = async (userId?: string) => {
 
 export const getDashboardByPath = async (path: string) => {
   // const slug = path.startsWith("/user") ? "/user" : path;
-  const found = await db
-    .select()
-    .from(dashboards)
-    .where(eq(dashboards.slug, path || "/"))
-    .limit(1)
-    .then((r) => r[0] || null);
-
-  console.log("by path", path, "found", found);
-
-  return found;
-};
-
-export const createDashboard = async (input: {
-  name: string;
-  slug: string;
-  description?: string;
-}) => {
-  const [row] = await db.insert(dashboards).values(input).returning();
-  return row;
+  const where = { slug: { equals: path || "/" } };
+  const query = stringify(
+    {
+      where,
+      limit: 1,
+    },
+    { addQueryPrefix: true },
+  );
+  const [found] = await getFromPayload("dashboards", query).then(
+    (r) => r?.docs || [],
+  );
+  return found || null;
 };
 
 export const getDashboardData = async (id: string) => {
   // Fetch dashboard
-  const [d] = await db.select().from(dashboards).where(eq(dashboards.id, id));
-  if (!d) {
-    throw new Error("Dashboard not found");
+  const where = { id: { equals: id } };
+  const query = stringify(
+    {
+      where,
+      limit: 1,
+    },
+    { addQueryPrefix: true },
+  );
+  const dashboards = await getFromPayload("dashboards", query).then(
+    (r) => r?.docs || [],
+  );
+  if (!dashboards[0]) {
+    throw new Error(`Dashboard not found: ${id}`);
   }
 
-  // Fetch items + join with queries
-  const items = await db
-    .select({
-      id: dashboardItems.id,
-      name: dashboardItems.name,
-      description: dashboardItems.description,
-      itemType: dashboardItems.itemType,
-      chartType: dashboardItems.chartType,
-      position: dashboardItems.position,
-      createdAt: dashboardItems.createdAt,
-      updatedAt: dashboardItems.updatedAt,
-      query: {
-        id: queries.id,
-        queryUid: queries.queryUid,
-        description: queries.description,
-        createdAt: queries.createdAt,
-        updatedAt: queries.updatedAt,
-      },
-    })
-    .from(dashboardItems)
-    .innerJoin(queries, eq(queries.id, dashboardItems.queryId))
-    .where(eq(dashboardItems.dashboardId, id));
-
   return {
-    ...d,
-    items: items.sort((a, b) => (a.position || 0) - (b.position || 0)),
-    layout: items.map((it, idx) => ({
+    ...dashboards[0],
+    items: dashboards[0].items?.sort(
+      (a: DashboardItem, b: DashboardItem) =>
+        (a.position || 0) - (b.position || 0),
+    ),
+    layout: dashboards[0].items?.map((it: DashboardItem, idx: number) => ({
       i: it.id,
-      x: (idx % (d.maxItemsPerRow || 3)) * (12 / (d.maxItemsPerRow || 3)),
-      y: Math.floor(idx / (d.maxItemsPerRow || 3)) * 2,
-      w: 12 / (d.maxItemsPerRow || 3),
-      h: (12 * 3) / ((d.maxItemsPerRow || 3) * 4),
+      x:
+        (idx % (dashboards[0].maxItemsPerRow || 3)) *
+        (12 / (dashboards[0].maxItemsPerRow || 3)),
+      y: Math.floor(idx / (dashboards[0].maxItemsPerRow || 3)) * 2,
+      w: 12 / (dashboards[0].maxItemsPerRow || 3),
+      h: (12 * 3) / ((dashboards[0].maxItemsPerRow || 3) * 4),
       // static: true,
     })),
   };
 };
 
 export const getDashboardItemData = async (id: string) => {
-  const [row] = await db
-    .select({
-      id: dashboardItems.id,
-      name: dashboardItems.name,
-      description: dashboardItems.description,
-      itemType: dashboardItems.itemType,
-      chartType: dashboardItems.chartType,
-      position: dashboardItems.position,
-      createdAt: dashboardItems.createdAt,
-      updatedAt: dashboardItems.updatedAt,
-      query: {
-        id: queries.id,
-        queryUid: queries.queryUid,
-        description: queries.description,
-        createdAt: queries.createdAt,
-        updatedAt: queries.updatedAt,
-      },
-    })
-    .from(dashboardItems)
-    .innerJoin(queries, eq(queries.id, dashboardItems.queryId))
-    .where(eq(dashboardItems.id, id));
+  const where = { id: { equals: id } };
+  const query = stringify(
+    {
+      where,
+      limit: 1,
+    },
+    { addQueryPrefix: true },
+  );
+  const [row] = await getFromPayload("dashboard_items", query).then(
+    (r) => r?.docs || [],
+  );
 
   if (!row) {
     throw new Error(`Dashboard item not found: ${id}`);
@@ -171,16 +156,26 @@ export const getDashboardItemData = async (id: string) => {
   return row;
 };
 
-const getQuery = async ({ queryUid }: { queryUid: string }) =>
-  db
-    .select()
-    .from(queries)
-    .where(eq(queries.queryUid, queryUid as any));
+const getQuery = async ({ queryUid }: { queryUid: string }) => {
+  const where = { queryUid: { equals: queryUid } };
+  const query = stringify(
+    {
+      where,
+      limit: 1,
+    },
+    { addQueryPrefix: true },
+  );
+  const [row] = await getFromPayload("queries", query).then(
+    (r) => r?.docs || [],
+  );
+  return row || null;
+};
 
 export const upsertQuery = async (input: {
   queryUid: string;
   description?: string;
 }) => {
+  /*
   // Try to find by queryUid, else insert
   const existing = await db
     .select()
@@ -199,6 +194,8 @@ export const upsertQuery = async (input: {
     .values({ queryUid: input.queryUid as any, description: input.description })
     .returning();
   return row;
+
+   */
 };
 
 export const changeDefaultView = async (input: {
@@ -206,6 +203,7 @@ export const changeDefaultView = async (input: {
   itemType: "chart" | "table" | string;
   chartType?: string;
 }) => {
+  /*
   const [row] = await db
     .update(dashboardItems)
     .set({
@@ -215,6 +213,8 @@ export const changeDefaultView = async (input: {
     .where(eq(dashboardItems.id, input.itemId))
     .returning();
   return row ?? null; // null if already attached
+
+   */
 };
 
 export const attachQueryToDashboard = async (input: {
@@ -226,6 +226,7 @@ export const attachQueryToDashboard = async (input: {
   chartType?: string;
   position?: number;
 }) => {
+  /*
   const q = await upsertQuery({
     queryUid: input.queryUid,
     description: input.description || "",
@@ -244,6 +245,8 @@ export const attachQueryToDashboard = async (input: {
     .onConflictDoNothing()
     .returning();
   return row ?? null; // null if already attached
+
+   */
 };
 
 export const attachQueryToUserDashboard = async (input: {
@@ -253,6 +256,7 @@ export const attachQueryToUserDashboard = async (input: {
   chartType?: string;
   position?: number;
 }) => {
+  /*
   const q = await getQuery({
     queryUid: input.queryUid,
   }).then((r) => r[0] || null);
@@ -277,12 +281,15 @@ export const attachQueryToUserDashboard = async (input: {
     .onConflictDoNothing()
     .returning();
   return row ?? null; // null if already attached
+
+   */
 };
 
 export const detachQueryFromDashboard = async (
   dashboardId: string,
   queryUid: string,
 ) => {
+  /*
   const q = await db
     .select()
     .from(queries)
@@ -297,10 +304,9 @@ export const detachQueryFromDashboard = async (
       ),
     );
   return res.length ?? 0;
-};
 
-/** Choose how to seed a user's first dashboard */
-const PRESET_SLUG_TO_FORK = "/"; // or null to create empty
+   */
+};
 
 // Paths provided via env (point to mounted files)
 const PUB_PATH = process.env.JWT_PUBLIC_KEY!;
@@ -342,41 +348,56 @@ export const ensureUserAndDashboard = async (opts: { sid?: string }) => {
     }
   }
 
-  const [u] = await db
-    .select()
-    .from(users)
-    .where(eq(users.uid, userId as any));
-  uid = u?.id;
+  const whare = {
+    userId: { equals: userId || null },
+  };
+  const query = stringify(
+    {
+      where: whare,
+      limit: 1,
+    },
+    { addQueryPrefix: true },
+  );
 
-  if (!uid) {
-    const [u] = await db.insert(users).values({ uid: userId! }).returning();
-    uid = u?.id;
-    // mintedToken = await signSession({ sub: userId, typ: "visitor", v: 1 });
+  let user;
+  if (userId) {
+    const [u] = await getFromPayload("users", query).then((r) => r?.docs || []);
+    user = u;
+    uid = user?.id;
+    if (!uid) {
+      const newUser = await fetch(
+        new URL("/api/users", process.env.PAYLOAD_API_URL!).toString(),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId }),
+        },
+      ).then((r) => r.json());
+      uid = newUser?.id;
+    }
   }
 
-  // 2) Ensure the user has at least one personal dashboard
-  const existing = await db
-    .select()
-    .from(dashboards)
-    .where(and(eq(dashboards.ownerUserId, uid as any)));
-  let dashId: string | undefined;
-  console.log("Existing dashboards for user", uid, existing);
+  if (!userId) {
+    // No user ID, return no-op
+    return { uid: null, userId: null, dashboardId: null };
+  }
 
-  if (existing[0]) {
-    dashId = existing[0].id;
-  } else {
-    // If you want to fork a preset on first run:
-
+  const whereDash = { ownerUserId: { equals: uid || null } };
+  const queryDash = stringify(
+    {
+      where: whereDash,
+      limit: 1,
+    },
+    { addQueryPrefix: true },
+  );
+  const [dash] = await getFromPayload("dashboards", queryDash).then(
+    (r) => r?.docs || [],
+  );
+  const dashId = dash?.id;
+  if (!dashId) {
     // Create empty dashboard
-    const [newDash] = await db
-      .insert(dashboards)
-      .values({
-        slug: `/user/${uid}`,
-        name: "User Dashboard",
-        ownerUserId: uid as any,
-      })
-      .returning();
-    dashId = newDash?.id;
   }
 
   return { uid, userId, dashboardId: dashId };

@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { ensureSession } from "@/app/actions";
 import ViewNavClient from "@/app/components/ViewNavClient";
 import { ItemViewProvider } from "@/app/contexts/ItemView";
-import { getDashboardItemData, getDashboards } from "@/app/lib/dashboards";
+import { getDashboardItemData, getDashboards } from "@/app/lib/payload";
 
 const ItemLayout = async ({
   params: { id },

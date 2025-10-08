@@ -1,11 +1,13 @@
 // app/(dash)/[[...section]]/page.tsx
 import { getSession } from "@auth0/nextjs-auth0";
 import type { Metadata } from "next";
+import type { Layout } from "react-grid-layout";
 
 import DashboardGrid from "@/app/components/DashboardGrid";
 import { LoginPrompt } from "@/app/components/LoginPrompt";
-import type { DashboardItem } from "@/app/lib/dashboards";
-import { getDashboardByPath, getDashboardData } from "@/app/lib/dashboards";
+// import type { DashboardItem } from "@/app/lib/dashboards";
+import { getDashboardByPath, getDashboardData } from "@/app/lib/payload";
+import type { DashboardItem, Query } from "@/app/lib/payload-types";
 
 function pathFromParams(params: { section?: string[] }) {
   // /            -> ''
@@ -45,21 +47,19 @@ const Page = async ({ params }: { params: { section?: string[] } }) => {
   // map to DashboardGrid items
 
   const items =
-    (d as any).items?.map(
-      (it: DashboardItem & { query: { queryUid: string } }) => ({
-        key: it.id,
-        position: it.position,
-        title: it.description || it.name || "",
-        id: it.id,
-        href: it.query?.queryUid
-          ? `/item/${it.id}#${typeToHash(it.itemType || it.type || "table")}`
-          : undefined,
-        type: it.type || it.itemType,
-        subtype: it.chartType,
-        queryUid: it.query?.queryUid,
-        layout: it.layout,
-      }),
-    ) ?? [];
+    (d as any).items?.map((it: DashboardItem & { layout: Layout }) => ({
+      key: it.id,
+      // position: it.position,
+      title: it.description || it.name || "",
+      id: it.id,
+      href: (it.query as Query)?.queryUid
+        ? `/item/${it.id}#${typeToHash(it.itemType || it.type || "table")}`
+        : undefined,
+      type: it.type || it.itemType,
+      subtype: it.chartType,
+      queryUid: (it.query as Query)?.queryUid,
+      layout: it.layout,
+    })) ?? [];
 
   items.push({
     key: "create",
