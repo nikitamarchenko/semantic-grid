@@ -9,18 +9,37 @@ import type { Dashboard, DashboardItem } from "@/app/lib/payload-types";
 
 export const getFromPayload = async (collection: string, query?: string) => {
   const url = new URL(
-    `/api/${collection}${query || ""}`,
+    `/api/payload/api/${collection}${query || ""}`,
     process.env.PAYLOAD_API_URL,
   );
   const res = await fetch(url.toString(), {
     headers: {
-      // 'Authorization': `Bearer ${process.env.PAYLOAD_API_KEY}`,
       "Content-Type": "application/json",
     },
   });
   if (!res.ok) {
     throw new Error(
       `Error fetching from Payload: ${res.status} ${res.statusText}`,
+    );
+  }
+  return res.json();
+};
+
+export const postToPayload = async (collection: string, data: any) => {
+  const url = new URL(
+    `/api/payload/api/${collection}`,
+    process.env.PAYLOAD_API_URL,
+  );
+  const res = await fetch(url.toString(), {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!res.ok) {
+    throw new Error(
+      `Error posting to Payload: ${res.status} ${res.statusText}`,
     );
   }
   return res.json();
@@ -46,7 +65,7 @@ export const getDashboards = async (userId?: string) => {
         i: d.id,
         x: 0,
         y: 0,
-        w: 12 / (d.maxItemsPerRow || 3),
+        w: 12 / ((d as any).maxItemsPerRow || 3),
         h: 2,
         static: true,
       },
@@ -76,7 +95,7 @@ export const getDashboards = async (userId?: string) => {
       i: d.id,
       x: 0,
       y: 0,
-      w: 12 / (d.maxItemsPerRow || 3),
+      w: 12 / ((d as any).maxItemsPerRow || 3),
       h: 2,
       static: true,
     },
@@ -119,10 +138,6 @@ export const getDashboardData = async (id: string) => {
 
   return {
     ...dashboards[0],
-    items: dashboards[0].items?.sort(
-      (a: DashboardItem, b: DashboardItem) =>
-        (a.position || 0) - (b.position || 0),
-    ),
     layout: dashboards[0].items?.map((it: DashboardItem, idx: number) => ({
       i: it.id,
       x:
@@ -335,6 +350,7 @@ async function getPublicKey(): Promise<CryptoKey> {
 export const ensureUserAndDashboard = async (opts: { sid?: string }) => {
   let uid: string | undefined;
   let userId: string | undefined;
+  console.log("ensureUserAndDashboard:", opts);
 
   if (opts.sid) {
     try {
@@ -345,37 +361,6 @@ export const ensureUserAndDashboard = async (opts: { sid?: string }) => {
     } catch {
       throw new Error("Invalid session");
       // no or invalid token?
-    }
-  }
-
-  const whare = {
-    userId: { equals: userId || null },
-  };
-  const query = stringify(
-    {
-      where: whare,
-      limit: 1,
-    },
-    { addQueryPrefix: true },
-  );
-
-  let user;
-  if (userId) {
-    const [u] = await getFromPayload("users", query).then((r) => r?.docs || []);
-    user = u;
-    uid = user?.id;
-    if (!uid) {
-      const newUser = await fetch(
-        new URL("/api/users", process.env.PAYLOAD_API_URL!).toString(),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId }),
-        },
-      ).then((r) => r.json());
-      uid = newUser?.id;
     }
   }
 
@@ -398,6 +383,18 @@ export const ensureUserAndDashboard = async (opts: { sid?: string }) => {
   const dashId = dash?.id;
   if (!dashId) {
     // Create empty dashboard
+    const userDashboard = {
+      id: null as unknown,
+      name: "My Dashboard",
+      slug: `/user/${userId}`,
+      ownerUserId: userId,
+      description: "Personal dashboard",
+      items: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    } as Dashboard;
+    const res = await postToPayload("dashboards", userDashboard);
+    console.log("Created user dashboard", res);
   }
 
   return { uid, userId, dashboardId: dashId };

@@ -27,6 +27,18 @@ export async function middleware(req: NextRequest) {
   const schema = req.headers.get("x-forwarded-proto") || "http";
   console.log("middleware", schema, host, req.nextUrl.pathname);
 
+  if (req.nextUrl.pathname.startsWith("/api/payload")) {
+    const url = new URL(req.nextUrl.toString(), process.env.PAYLOAD_API_URL);
+    url.pathname = url.pathname.replace("/api/payload", "");
+    return NextResponse.rewrite(url, {
+      ...req,
+      headers: {
+        ...req.headers,
+        "x-api-key": process.env.PAYLOAD_API_KEY,
+      },
+    });
+  }
+
   const freeRequests = Number(cookies().get("apegpt-trial")?.value || 0);
   const guestToken = cookies().get("uid")?.value;
   console.log("guestToken", !!guestToken, freeRequests);
