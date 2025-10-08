@@ -9,33 +9,32 @@ import type { Dashboard, DashboardItem } from "@/app/lib/payload-types";
 
 export const getFromPayload = async (collection: string, query?: string) => {
   const url = new URL(
-    `/api/payload/api/${collection}${query || ""}`,
+    `/api/${collection}${query || ""}`,
     process.env.PAYLOAD_API_URL,
   );
   const res = await fetch(url.toString(), {
     headers: {
       "Content-Type": "application/json",
-    },
+      "x-api-key": process.env.PAYLOAD_API_KEY,
+    } as any,
   });
   if (!res.ok) {
     throw new Error(
-      `Error fetching from Payload: ${res.status} ${res.statusText}`,
+      `Error fetching from Payload: ${res.status} ${res.statusText} url: ${url.toString()}`,
     );
   }
   return res.json();
 };
 
 export const postToPayload = async (collection: string, data: any) => {
-  const url = new URL(
-    `/api/payload/api/${collection}`,
-    process.env.PAYLOAD_API_URL,
-  );
+  const url = new URL(`/api/${collection}`, process.env.PAYLOAD_API_URL);
   const res = await fetch(url.toString(), {
     method: "POST",
     body: JSON.stringify(data),
     headers: {
       "Content-Type": "application/json",
-    },
+      "x-api-key": process.env.PAYLOAD_API_KEY,
+    } as any,
   });
   if (!res.ok) {
     throw new Error(

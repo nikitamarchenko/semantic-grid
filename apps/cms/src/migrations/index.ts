@@ -1,10 +1,9 @@
-// import * as migration_20251008_195827_user_access from './20251008_195827_user_access'
-// import * as migration_20251008_204107_api_access_dash from './20251008_204107_api_access_dash'
+import * as migration_20251008_223642_dummy_1 from './20251008_223642_dummy_1'
 
 export const migrations = [
-  // {
-  //  up: migration_20251008_195827_user_access.up,
-  //  down: migration_20251008_195827_user_access.down,
-  //  name: '20251008_195827_user_access',
-  // },
+  {
+    up: migration_20251008_223642_dummy_1.up,
+    down: migration_20251008_223642_dummy_1.down,
+    name: '20251008_223642_dummy_1',
+  },
 ]
