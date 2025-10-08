@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 
 import { and, eq, isNull, or } from "drizzle-orm";
 import * as jose from "jose";
+import type { Layout } from "react-grid-layout";
 
 import { db } from "@/app/db";
 import { dashboardItems, dashboards, queries, users } from "@/app/db/schema";
@@ -16,6 +17,9 @@ export type Dashboard = {
   ownerUserId?: string;
   createdAt?: string;
   updatedAt?: string;
+  items?: DashboardItem[];
+  // layout?: any; // react-grid-layout layout
+  maxItemsPerRow?: number;
 };
 
 export type DashboardItem = {
@@ -30,6 +34,7 @@ export type DashboardItem = {
   chartType?: string; // e.g., 'bar', 'line', etc.
   createdAt?: string;
   updatedAt?: string;
+  layout?: Layout; // react-grid-layout layout
 };
 
 export type Query = {
@@ -51,8 +56,17 @@ export const getDashboards = async (userId?: string) => {
     .where(
       or(eq(dashboards.ownerUserId, userId), isNull(dashboards.ownerUserId)),
     );
+
   return userDashboards.map((d) => ({
     ...d,
+    layout: {
+      i: d.id,
+      x: 0,
+      y: 0,
+      w: 12 / (d.maxItemsPerRow || 3),
+      h: 2,
+      static: true,
+    },
     // slug: d.slug.startsWith("/user") ? "/user" : d.slug,
   }));
 };
@@ -112,7 +126,15 @@ export const getDashboardData = async (id: string) => {
 
   return {
     ...d,
-    items,
+    items: items.sort((a, b) => (a.position || 0) - (b.position || 0)),
+    layout: items.map((it, idx) => ({
+      i: it.id,
+      x: (idx % (d.maxItemsPerRow || 3)) * (12 / (d.maxItemsPerRow || 3)),
+      y: Math.floor(idx / (d.maxItemsPerRow || 3)) * 2,
+      w: 12 / (d.maxItemsPerRow || 3),
+      h: (12 * 3) / ((d.maxItemsPerRow || 3) * 4),
+      // static: true,
+    })),
   };
 };
 

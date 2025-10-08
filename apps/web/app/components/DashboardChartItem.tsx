@@ -37,8 +37,6 @@ export const DashboardChartItem = ({
     offset: 0,
   });
 
-  console.log("is refreshing", isRefreshing);
-
   const gridColumns: GridColDef[] = useMemo(() => {
     if (!query) return [];
 

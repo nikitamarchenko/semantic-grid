@@ -1,3 +1,6 @@
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
+
 import type { ReactNode } from "react";
 
 import TopNav from "@/app/(dash)/top-nav";
