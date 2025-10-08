@@ -43,7 +43,12 @@
     "openapi-fetch": "^0.13.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-grid-layout": "^1.5.2",
     "react-markdown": "^9.0.1",
+<<<<<<< HEAD
+=======
+    "react-toggle-slider": "^0.4.1",
+>>>>>>> 107768f (added CMS app)
     "react-type-animation": "^3.2.0",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.0",
@@ -55,6 +60,7 @@
     "@types/node": "^18.19.31",
     "@types/nodemailer": "^6.4.17",
     "@types/react": "^18.2.79",
+    "@types/react-grid-layout": "^1.3.5",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^8.56.0",
