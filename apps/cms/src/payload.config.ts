@@ -16,6 +16,8 @@ import { Queries } from '@/collections/Queries'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+// For more information on configuring Payload, see: https://payloadcms.github.io/payload/docs/configuration
+
 export default buildConfig({
   admin: {
     user: Users.slug,
