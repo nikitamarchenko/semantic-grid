@@ -255,16 +255,16 @@ export const attachQueryToDashboard = async (input: {
     description: input.description || "",
   });
 
-  if (q?.id) {
+  if (q?.doc?.id) {
     const item = await postToPayload("dashboard_items", {
-      dashboardId: parseInt(input.dashboardId, 10),
-      query: q.id,
-      name: input.name || q.description,
-      description: input.description || q.description,
+      query: q.doc.id,
+      name: input.name || q.doc.name,
+      description: input.description || q.doc.description,
+      type: input.itemType,
       itemType: input.itemType,
       chartType: input.chartType,
-      width: input.width,
-    }).then((r) => r);
+      width: input.width || 4,
+    }).then((r) => r.doc);
 
     if (item?.id) {
       await patchOnPayload("dashboards", parseInt(input.dashboardId, 10), {

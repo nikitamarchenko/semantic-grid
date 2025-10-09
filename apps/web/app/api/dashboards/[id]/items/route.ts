@@ -4,13 +4,13 @@ import { z } from "zod";
 import {
   attachQueryToDashboard,
   detachQueryFromDashboard,
-} from "@/app/lib/dashboards";
+} from "@/app/lib/payload";
 
 const Attach = z.object({
   queryUid: z.string().uuid(),
   name: z.string().optional(),
   description: z.string().optional(),
-  itemType: z.enum(["chart", "table", "both"]),
+  itemType: z.enum(["chart", "table"]),
   chartType: z.string().optional(),
   position: z.number().int().optional(),
 });
@@ -31,7 +31,7 @@ export async function POST(
     ...parsed.data,
   });
   // row === null means already attached; still 200 with info
-  return NextResponse.json({ attached: !!row, item: row });
+  return NextResponse.json({ item: row });
 }
 
 export async function DELETE(
