@@ -41,17 +41,10 @@ const DashboardGrid = ({
     `apegpt-layout-${slugPath || "home"}`,
     JSON.stringify(layout),
   );
-  console.log(
-    "computedLayout",
-    layout,
-    "savedLayout",
-    savedLayout,
-    maxItemsPerRow,
-  );
 
   const onLayoutChange = (newLayout: any) => {
     console.log("onLayoutChange", newLayout);
-    // setSavedLayout(JSON.stringify(newLayout));
+    setSavedLayout(JSON.stringify(newLayout));
   };
 
   return (
@@ -76,7 +69,7 @@ const DashboardGrid = ({
             isDraggable
             isResizable
             layouts={{
-              lg: layout,
+              lg: JSON.parse(savedLayout) || layout,
               md: [],
               sm: [],
               xs: [],
