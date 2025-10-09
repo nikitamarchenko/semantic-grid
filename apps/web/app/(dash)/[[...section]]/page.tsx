@@ -41,6 +41,7 @@ const Page = async ({ params }: { params: { section?: string[] } }) => {
   const slugPath = pathFromParams(params); // '/' | '/tokens' | '/trends' | '/traders' | '/user'
   const isUserPage = slugPath.startsWith("/user/");
   const dMeta = await getDashboardByPath(slugPath);
+  console.log("Dashboard meta:", slugPath, dMeta);
   const d = await getDashboardData(dMeta?.id || "");
   const session = await getSession();
 

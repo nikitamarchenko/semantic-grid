@@ -1,6 +1,6 @@
 "use client";
 
-import { Container, Typography } from "@mui/material";
+import { Box, Container, Paper, Typography } from "@mui/material";
 import { Responsive, WidthProvider } from "react-grid-layout";
 
 import DashboardCard from "@/app/components/DashboardItem";
@@ -27,7 +27,7 @@ const DashboardGrid = ({
   description,
   items,
   slugPath,
-  maxItemsPerRow = 2,
+  maxItemsPerRow = 3,
   layout = [],
 }: {
   title?: string;
@@ -41,65 +41,66 @@ const DashboardGrid = ({
     `apegpt-layout-${slugPath || "home"}`,
     JSON.stringify(layout),
   );
-  // console.log("savedLayout", savedLayout);
+  console.log(
+    "computedLayout",
+    layout,
+    "savedLayout",
+    savedLayout,
+    maxItemsPerRow,
+  );
 
   const onLayoutChange = (newLayout: any) => {
-    setSavedLayout(JSON.stringify(newLayout));
+    console.log("onLayoutChange", newLayout);
+    // setSavedLayout(JSON.stringify(newLayout));
   };
 
   return (
     <Container maxWidth={false}>
-      {description && (
-        <Typography variant="h6" color="text.primary">
-          {description}
-        </Typography>
-      )}
-      {/* <Grid container spacing={3} direction="row" alignItems="stretch">
-      {items.sort(byPositionAsc).map((it) => (
-        <Grid item key={it.id} xs={12} md={12 / maxItemsPerRow}>
-          <DashboardCard
-            id={it.id}
-            title={it.title}
-            href={it.href}
-            type={it.type}
-            subtype={it.subtype}
-            queryUid={it.queryUid}
-            slugPath={slugPath}
-            maxItemsPerRow={maxItemsPerRow}
-          />
-        </Grid>
-      ))}
-    </Grid> */}
-      <ResponsiveGridLayout
-        className="layout"
-        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-        cols={{ lg: 12, md: 6, sm: 3, xs: 3, xxs: 3 }}
-        isDraggable
-        isResizable
-        layouts={{
-          lg: JSON.parse(savedLayout),
-          md: [],
-          sm: [],
-          xs: [],
-          xxs: [],
-        }}
-        onLayoutChange={onLayoutChange}
-      >
-        {items.map((it, idx) => (
-          <div key={it.id}>
-            <DashboardCard
-              id={it.id}
-              title={it.title}
-              // href={it.href}
-              type={it.type}
-              subtype={it.subtype}
-              queryUid={it.queryUid}
-              slugPath={slugPath}
-              maxItemsPerRow={maxItemsPerRow}
-            />
-          </div>
-        ))}
-      </ResponsiveGridLayout>
+      <Paper elevation={0}>
+        {description && <Typography variant="h6">{description}</Typography>}
+        <Box>
+          <ResponsiveGridLayout
+            style={{ minHeight: "100vh" }}
+            autoSize
+            className="layout"
+            breakpoints={{
+              xl: 1200,
+              lg: 1200,
+              md: 900,
+              sm: 768,
+              xs: 480,
+              xxs: 0,
+            }}
+            cols={{ xl: 12, lg: 12, md: 6, sm: 3, xs: 3, xxs: 3 }}
+            // rowHeight={400}
+            isDraggable
+            isResizable
+            layouts={{
+              lg: layout,
+              md: [],
+              sm: [],
+              xs: [],
+              xxs: [],
+            }}
+            onLayoutChange={onLayoutChange}
+          >
+            {items.map((it, idx) => (
+              <div key={it.id}>
+                <DashboardCard
+                  id={it.id}
+                  title={it.title}
+                  // href={it.href}
+                  type={it.type}
+                  subtype={it.subtype}
+                  queryUid={it.queryUid}
+                  slugPath={slugPath}
+                  maxItemsPerRow={maxItemsPerRow}
+                />
+              </div>
+            ))}
+          </ResponsiveGridLayout>
+        </Box>
+      </Paper>
     </Container>
   );
 };

@@ -18,7 +18,7 @@ export const Dashboards: CollectionConfig = {
     { name: 'slug', type: 'text', required: true },
     { name: 'name', type: 'text', required: true },
     { name: 'description', type: 'text' },
-    { name: 'ownerUserId', type: 'text' },
+    { name: 'ownerUserId', type: 'text', unique: true },
     { name: 'items', type: 'relationship', relationTo: 'dashboard_items', hasMany: true },
   ],
 }

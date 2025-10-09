@@ -7,6 +7,12 @@ export const DashboardItems: CollectionConfig = {
   },
   access: {
     read: () => true,
+    create: ({ req: { user, headers } }) => {
+      return Boolean(user) || Boolean(headers.get('x-api-key') === process.env.PAYLOAD_API_KEY)
+    },
+    update: ({ req: { user, headers } }) => {
+      return Boolean(user) || Boolean(headers.get('x-api-key') === process.env.PAYLOAD_API_KEY)
+    },
   },
   fields: [
     { name: 'name', type: 'text', required: true },

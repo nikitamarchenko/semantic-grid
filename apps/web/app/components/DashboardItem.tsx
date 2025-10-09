@@ -48,10 +48,13 @@ const DashboardCard = ({
   const inner = (
     <Card
       elevation={0}
-      sx={{
-        minHeight,
-        minWidth: 300,
-      }}
+      sx={
+        {
+          // minHeight: 400,
+          // minWidth: 400,
+          // width: 400,
+        }
+      }
     >
       <CardActionArea component={href ? Link : "div"} href={href} sx={{ p: 2 }}>
         <CardContent>

@@ -7,6 +7,22 @@ import { stringify } from "qs-esm";
 
 import type { Dashboard, DashboardItem } from "@/app/lib/payload-types";
 
+export const getFromPayloadById = async (collection: string, id: string) => {
+  const url = new URL(`/api/${collection}/${id}`, process.env.PAYLOAD_API_URL);
+  const res = await fetch(url.toString(), {
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": process.env.PAYLOAD_API_KEY,
+    } as any,
+  });
+  if (!res.ok) {
+    throw new Error(
+      `Error fetching from Payload: ${res.status} ${res.statusText} url: ${url.toString()}`,
+    );
+  }
+  return res.json();
+};
+
 export const getFromPayload = async (collection: string, query?: string) => {
   const url = new URL(
     `/api/${collection}${query || ""}`,
@@ -44,9 +60,34 @@ export const postToPayload = async (collection: string, data: any) => {
   return res.json();
 };
 
+export const patchOnPayload = async (
+  collection: string,
+  id: number,
+  data: any,
+) => {
+  const url = new URL(
+    `/api/${collection}/${id.toString()}`,
+    process.env.PAYLOAD_API_URL,
+  );
+  const res = await fetch(url.toString(), {
+    method: "PATCH",
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": process.env.PAYLOAD_API_KEY,
+    } as any,
+  });
+  if (!res.ok) {
+    throw new Error(
+      `Error posting to Payload: ${res.status} ${res.statusText}`,
+    );
+  }
+  return res.json();
+};
+
 export const getDashboards = async (userId?: string) => {
   if (!userId) {
-    const where = {};
+    const where = { ownerUserId: { equals: null } };
     const query = stringify(
       {
         where,
@@ -60,17 +101,10 @@ export const getDashboards = async (userId?: string) => {
     );
     return dashboards.map((d: Dashboard) => ({
       ...d,
-      layout: {
-        i: d.id,
-        x: 0,
-        y: 0,
-        w: 12 / ((d as any).maxItemsPerRow || 3),
-        h: 2,
-        static: true,
-      },
       // slug: d.slug.startsWith("/user") ? "/user" : d.slug,
     }));
   }
+
   const where = {
     or: [
       { ownerUserId: { equals: userId } },
@@ -90,14 +124,7 @@ export const getDashboards = async (userId?: string) => {
   );
   return userDashboards.map((d: Dashboard) => ({
     ...d,
-    layout: {
-      i: d.id,
-      x: 0,
-      y: 0,
-      w: 12 / ((d as any).maxItemsPerRow || 3),
-      h: 2,
-      static: true,
-    },
+
     // slug: d.slug.startsWith("/user") ? "/user" : d.slug,
   }));
 };
@@ -120,33 +147,24 @@ export const getDashboardByPath = async (path: string) => {
 
 export const getDashboardData = async (id: string) => {
   // Fetch dashboard
-  const where = { id: { equals: id } };
-  const query = stringify(
-    {
-      where,
-      limit: 1,
-    },
-    { addQueryPrefix: true },
-  );
-  const dashboards = await getFromPayload("dashboards", query).then(
-    (r) => r?.docs || [],
-  );
-  if (!dashboards[0]) {
+  const dashboard = await getFromPayloadById("dashboards", id);
+  if (!dashboard) {
     throw new Error(`Dashboard not found: ${id}`);
   }
 
+  const maxItems = dashboard.maxItemsPerRow || 2;
+  const layout = dashboard.items?.map((it: DashboardItem, idx: number) => ({
+    i: it.id.toString(),
+    x: (idx % maxItems) * (12 / maxItems),
+    y: Math.floor(idx / maxItems),
+    w: it.width || 12 / maxItems,
+    h: it.width ? (it.width * 3) / 5 : (12 * 3) / (maxItems * 4),
+    // static: true,
+  }));
+
   return {
-    ...dashboards[0],
-    layout: dashboards[0].items?.map((it: DashboardItem, idx: number) => ({
-      i: it.id,
-      x:
-        (idx % (dashboards[0].maxItemsPerRow || 3)) *
-        (12 / (dashboards[0].maxItemsPerRow || 3)),
-      y: Math.floor(idx / (dashboards[0].maxItemsPerRow || 3)) * 2,
-      w: 12 / (dashboards[0].maxItemsPerRow || 3),
-      h: (12 * 3) / ((dashboards[0].maxItemsPerRow || 3) * 4),
-      // static: true,
-    })),
+    ...dashboard,
+    layout,
   };
 };
 
@@ -189,47 +207,39 @@ export const upsertQuery = async (input: {
   queryUid: string;
   description?: string;
 }) => {
-  /*
+  const where = { queryUid: { equals: input.queryUid } };
+  const query = stringify(
+    {
+      where,
+      limit: 1,
+    },
+    { addQueryPrefix: true },
+  );
   // Try to find by queryUid, else insert
-  const existing = await db
-    .select()
-    .from(queries)
-    .where(eq(queries.queryUid, input.queryUid as any));
-  if (existing[0]) {
-    const [upd] = await db
-      .update(queries)
-      .set({ description: input.description })
-      .where(eq(queries.id, existing[0].id))
-      .returning();
-    return upd;
-  }
-  const [row] = await db
-    .insert(queries)
-    .values({ queryUid: input.queryUid as any, description: input.description })
-    .returning();
-  return row;
+  const existing = await getFromPayload("queries", query).then(
+    (r) => r?.docs || [],
+  );
 
-   */
+  if (existing[0]) {
+    return patchOnPayload("queries", existing[0].id, {
+      description: input.description || existing[0].description,
+    }).then((r) => r);
+  }
+  return postToPayload("queries", {
+    queryUid: input.queryUid,
+    description: input.description || "",
+  }).then((r) => r);
 };
 
 export const changeDefaultView = async (input: {
   itemId: string;
   itemType: "chart" | "table" | string;
   chartType?: string;
-}) => {
-  /*
-  const [row] = await db
-    .update(dashboardItems)
-    .set({
-      itemType: input.itemType as any,
-      chartType: input.chartType,
-    })
-    .where(eq(dashboardItems.id, input.itemId))
-    .returning();
-  return row ?? null; // null if already attached
-
-   */
-};
+}) =>
+  patchOnPayload("dashboard_items", parseInt(input.itemId, 10), {
+    itemType: input.itemType as any,
+    chartType: input.chartType,
+  }).then((r) => r);
 
 export const attachQueryToDashboard = async (input: {
   dashboardId: string;
@@ -238,29 +248,30 @@ export const attachQueryToDashboard = async (input: {
   description?: string;
   itemType: "chart" | "table";
   chartType?: string;
-  position?: number;
+  width?: number;
 }) => {
-  /*
   const q = await upsertQuery({
     queryUid: input.queryUid,
     description: input.description || "",
   });
-  const [row] = await db
-    .insert(dashboardItems)
-    .values({
-      dashboardId: input.dashboardId as any,
-      queryId: q?.id as any,
-      name: input.name,
-      description: input.description,
+
+  if (q?.id) {
+    const item = await postToPayload("dashboard_items", {
+      dashboardId: parseInt(input.dashboardId, 10),
+      query: q.id,
+      name: input.name || q.description,
+      description: input.description || q.description,
       itemType: input.itemType,
       chartType: input.chartType,
-      position: input.position ?? 0,
-    })
-    .onConflictDoNothing()
-    .returning();
-  return row ?? null; // null if already attached
+      width: input.width,
+    }).then((r) => r);
 
-   */
+    if (item?.id) {
+      await patchOnPayload("dashboards", parseInt(input.dashboardId, 10), {
+        items: [...(item.dashboard?.items || []), item.id],
+      }).then((r) => r);
+    }
+  }
 };
 
 export const attachQueryToUserDashboard = async (input: {
@@ -270,56 +281,61 @@ export const attachQueryToUserDashboard = async (input: {
   chartType?: string;
   position?: number;
 }) => {
-  /*
-  const q = await getQuery({
-    queryUid: input.queryUid,
-  }).then((r) => r[0] || null);
-  // Find user's personal dashboard
-  const [d] = await db
-    .select()
-    .from(dashboards)
-    .where(eq(dashboards.ownerUserId, input.userId as any));
-  if (!d) {
+  if (!input.userId) {
+    throw new Error("No userId provided");
+  }
+
+  const where = { ownerUserId: { equals: input.userId } };
+  const query = stringify(
+    {
+      where,
+      limit: 1,
+    },
+    { addQueryPrefix: true },
+  );
+  const userDashboards = await getFromPayload("dashboards", query).then(
+    (r) => r?.docs || [],
+  );
+  if (!userDashboards[0]) {
     throw new Error("User dashboard not found");
   }
-  // Attach to it
-  const [row] = await db
-    .insert(dashboardItems)
-    .values({
-      dashboardId: d.id as any,
-      queryId: q?.id as any,
-      itemType: input.itemType,
-      chartType: input.chartType,
-      position: input.position ?? 0,
-    })
-    .onConflictDoNothing()
-    .returning();
-  return row ?? null; // null if already attached
+  const dashboardId = userDashboards[0].id;
 
-   */
+  return attachQueryToDashboard({
+    dashboardId: dashboardId.toString(),
+    queryUid: input.queryUid,
+    itemType: input.itemType,
+    chartType: input.chartType,
+  });
 };
 
 export const detachQueryFromDashboard = async (
   dashboardId: string,
   queryUid: string,
 ) => {
-  /*
-  const q = await db
-    .select()
-    .from(queries)
-    .where(eq(queries.queryUid, queryUid as any));
-  if (!q[0]) return 0;
-  const res = await db
-    .delete(dashboardItems)
-    .where(
-      and(
-        eq(dashboardItems.dashboardId, dashboardId as any),
-        eq(dashboardItems.queryId, q[0].id as any),
-      ),
-    );
-  return res.length ?? 0;
+  const where = { "query.queryUid": { equals: queryUid } };
+  const query = stringify(
+    {
+      where,
+      limit: 1,
+    },
+    { addQueryPrefix: true },
+  );
+  const items = await getFromPayload("dashboard_items", query).then(
+    (r) => r?.docs || [],
+  );
+  if (!items[0]) {
+    console.log("No dashboard item found for queryUid", queryUid);
+    return 0;
+  }
+  const itemId = items[0].id;
 
-   */
+  // Remove item from dashboard's items array
+  return patchOnPayload("dashboards", parseInt(dashboardId, 10), {
+    items: (items[0].dashboard?.items || []).filter(
+      (id: number) => id !== itemId,
+    ),
+  }).then((r) => r);
 };
 
 // Paths provided via env (point to mounted files)
@@ -355,8 +371,10 @@ export const ensureUserAndDashboard = async (opts: { sid?: string }) => {
     try {
       const publicKey = await getPublicKey();
       const jwt = await jose.jwtVerify(opts.sid, publicKey);
-      console.log("Verified guest JWT", jwt);
+      // console.log("Verified guest JWT", jwt);
       userId = jwt.payload?.sub;
+      uid = jwt.payload.sub;
+      console.log("uid", uid);
     } catch {
       throw new Error("Invalid session");
       // no or invalid token?
@@ -368,7 +386,7 @@ export const ensureUserAndDashboard = async (opts: { sid?: string }) => {
     return { uid: null, userId: null, dashboardId: null };
   }
 
-  const whereDash = { ownerUserId: { equals: uid || null } };
+  const whereDash = { ownerUserId: { equals: userId || null } };
   const queryDash = stringify(
     {
       where: whereDash,
@@ -380,11 +398,12 @@ export const ensureUserAndDashboard = async (opts: { sid?: string }) => {
     (r) => r?.docs || [],
   );
   const dashId = dash?.id;
+
   if (!dashId) {
     // Create empty dashboard
     const userDashboard = {
       id: null as unknown,
-      name: "My Dashboard",
+      name: "User Dashboard",
       slug: `/user/${userId}`,
       ownerUserId: userId,
       description: "Personal dashboard",

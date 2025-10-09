@@ -52,7 +52,7 @@ export const SemanticGridMenu = ({
   const ref = useRef();
   const { user, authUser } = useAppUser();
   const {
-    data: sessions,
+    data: sessions = [],
     error: dataError,
     mutate,
     isLoading: sessionsAreLoading,
