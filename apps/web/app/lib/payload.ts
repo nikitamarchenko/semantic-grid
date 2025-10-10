@@ -273,8 +273,15 @@ export const attachQueryToDashboard = async (input: {
     }).then((r) => r.doc);
 
     if (item?.id) {
+      const dashboard = await getFromPayloadById(
+        "dashboards",
+        input.dashboardId,
+      ).then((r) => r || null);
+      if (!dashboard) {
+        throw new Error(`Dashboard not found: ${input.dashboardId}`);
+      }
       await patchOnPayload("dashboards", parseInt(input.dashboardId, 10), {
-        items: [...(item.dashboard?.items || []), item.id],
+        items: [...(dashboard.items || []), item.id],
       }).then((r) => r);
     }
   }
@@ -308,6 +315,7 @@ export const attachQueryToUserDashboard = async (input: {
   const dashboardId = userDashboards[0].id;
 
   return attachQueryToDashboard({
+    name: "New Item",
     dashboardId: dashboardId.toString(),
     queryUid: input.queryUid,
     itemType: input.itemType,

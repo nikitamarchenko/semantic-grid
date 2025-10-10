@@ -171,7 +171,9 @@ export const SemanticGridMenu = ({
           </MenuItem>
         )}
         {mode === "editing" && (
-          <MenuItem onClick={onActionClick}>New session</MenuItem>
+          <MenuItem component={Link} href="/grid">
+            New session
+          </MenuItem>
         )}
         {user && history && history.length > 0 && <Divider />}
         {user && history && history.length > 0 && (

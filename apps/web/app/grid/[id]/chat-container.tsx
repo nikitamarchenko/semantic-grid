@@ -278,9 +278,15 @@ export const ChatContainer = ({
   } = useGridSession();
   const inputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  const [followUps, setFollowUps] = useState<string[]>([]);
+  // const [followUps, setFollowUps] = useState<string[]>([]);
   const [showButton, setShowButton] = useState(false);
   const [inputHeight, setInputHeight] = useState(0);
+
+  const followUps = [
+    "Show top traders by 24h PnL with their PnL, transaction count, and win rate.",
+    "Find tokens first seen on pump.fun within 1h that have no DEX trades. Show name, description, transaction count (sort default), and % price change since first trade",
+    "Show top 10 wallets holding most HNT tokens that have only traded once in the last 30 days.",
+  ];
 
   useEffect(() => {
     // console.log("***", sects.slice(-1)[0]);
@@ -361,7 +367,7 @@ export const ChatContainer = ({
         undefined,
         "Suggest 3 starter queries for a user willing to explore copy trading on Solana",
       );
-      setFollowUps(ss);
+      // setFollowUps(ss);
     }
   }, []);
 
@@ -630,6 +636,63 @@ export const ChatContainer = ({
             }}
           >
             <Container maxWidth="md">
+              <Stack
+                direction="column"
+                spacing={1}
+                mb={1}
+                justifyContent="space-between"
+                sx={{ px: 2 }}
+              >
+                {!metadata && !pending && (
+                  <Typography variant="body2" color="textSecondary">
+                    Ask Anything About Solana Based Tokens:
+                  </Typography>
+                )}
+                {!metadata &&
+                  !pending &&
+                  followUps.map((f: string) => (
+                    <Box
+                      key={f}
+                      onClick={() => {
+                        setPromptVal(f);
+                        // setVal(f);
+                      }}
+                      sx={{
+                        cursor: "pointer",
+                        // maxWidth: `${100 / (TutorialSteps[Number(step)]?.choices?.length || 1)}%`,
+                        transition: "all 0.2s ease-in-out",
+                        border: `1px solid ${alpha(mode === "dark" ? "#fff" : "#000", 0.5)}`,
+                        "&:hover": {
+                          border: `1px solid ${alpha(mode === "dark" ? "#fff" : "#000", 0.8)}`,
+                        },
+                        borderRadius: "8px",
+                        padding: 2,
+                      }}
+                    >
+                      <Stack direction="column">
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            transition: "all 0.2s ease-in-out",
+                            color: alpha(
+                              mode === "dark" ? "#fff" : "#000",
+                              0.5,
+                              // val === f ? 0.8 : 0.5,
+                            ),
+                            "&:hover": {
+                              color: alpha(
+                                mode === "dark" ? "#fff" : "#000",
+                                0.8,
+                              ),
+                            },
+                          }}
+                        >
+                          {f}
+                        </Typography>
+                      </Stack>
+                    </Box>
+                  ))}
+              </Stack>
               <QueryBox
                 id={id}
                 hasData={hasData}

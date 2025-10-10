@@ -40,7 +40,7 @@ const GridItemNavClient = ({
   const { mode, setMode } = useContext(ThemeContext);
   const { setNavOpen, editMode, setEditMode } = useContext(AppContext);
   const { view } = useItemViewContext();
-  console.log("grid nav items", metadata, queryUid);
+  console.log("grid nav items", metadata, queryUid, uid);
 
   const handleToggle = () => {
     if (editMode && queryUid) {
@@ -49,7 +49,7 @@ const GridItemNavClient = ({
         itemType: view === "chart" ? "chart" : "table",
       }).then(() => {
         setEditMode("");
-        router.replace(editMode);
+        router.replace(`/user/${uid}`);
       });
     } else {
       setEditMode("");
