@@ -43,8 +43,8 @@ const DashboardGrid = ({
   );
 
   const onLayoutChange = (newLayout: any) => {
-    console.log("onLayoutChange", newLayout);
-    setSavedLayout(JSON.stringify(newLayout));
+    // console.log("onLayoutChange", newLayout);
+    // setSavedLayout(JSON.stringify(newLayout));
   };
 
   return (
@@ -69,7 +69,7 @@ const DashboardGrid = ({
             isDraggable
             isResizable
             layouts={{
-              lg: JSON.parse(savedLayout) || layout,
+              lg: layout,
               md: [],
               sm: [],
               xs: [],
