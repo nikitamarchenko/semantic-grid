@@ -42,7 +42,7 @@ const ToggleSliderBar = (props: CSSProperties) => (
 const TopNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const items = dashboards.filter((d) => d.slug !== "/");
+  // const items = dashboards.filter((d) => d.slug !== "/");
   const { editMode, setEditMode } = useContext(AppContext);
 
   const handleToggle = () => {
@@ -62,17 +62,17 @@ const TopNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
     <AppBar position="relative" color="inherit" elevation={0}>
       <Container maxWidth={false}>
         <Toolbar disableGutters sx={{ gap: 2 }}>
-          <Button
+          {/* <Button
             component={Link}
             href="/"
             variant="text"
             color={pathname === "/" ? "primary" : "inherit"}
             sx={{ textTransform: "none" }}
           >
-            Home
-          </Button>
+            {d}
+          </Button> */}
 
-          {items.map((d) => (
+          {dashboards.map((d) => (
             <Button
               key={d.id}
               component={Link}

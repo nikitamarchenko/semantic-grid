@@ -87,7 +87,7 @@ export const patchOnPayload = async (
 
 export const getDashboards = async (userId?: string) => {
   if (!userId) {
-    const where = { ownerUserId: { equals: null } };
+    const where = { ownerUserId: { exists: false } };
     const query = stringify(
       {
         where,
@@ -108,7 +108,7 @@ export const getDashboards = async (userId?: string) => {
   const where = {
     or: [
       { ownerUserId: { equals: userId } },
-      { ownerUserId: { equals: null } },
+      { ownerUserId: { exists: false } },
     ],
   };
   const query = stringify(
@@ -122,11 +122,17 @@ export const getDashboards = async (userId?: string) => {
   const userDashboards = await getFromPayload("dashboards", query).then(
     (r) => r?.docs || [],
   );
-  return userDashboards.map((d: Dashboard) => ({
+  const mappedDashboards = userDashboards.map((d: Dashboard) => ({
     ...d,
-
     // slug: d.slug.startsWith("/user") ? "/user" : d.slug,
   }));
+  return [
+    mappedDashboards.find((d: Dashboard) => d.slug === "/"),
+    ...mappedDashboards.filter(
+      (d: Dashboard) => d.slug !== "/" && d.ownerUserId !== userId,
+    ),
+    mappedDashboards.find((d: Dashboard) => d.ownerUserId === userId),
+  ];
 };
 
 export const getDashboardByPath = async (path: string) => {
