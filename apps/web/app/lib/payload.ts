@@ -164,7 +164,7 @@ export const getDashboardData = async (id: string) => {
     x: (idx % maxItems) * (12 / maxItems),
     y: Math.floor(idx / maxItems),
     w: it.width || 12 / maxItems,
-    h: it.width ? (it.width * 3) / 5 : (12 * 3) / (maxItems * 4),
+    h: it.height || (it.width ? (it.width * 3) / 5 : (12 * 3) / (maxItems * 4)),
     // static: true,
   }));
 
@@ -243,6 +243,7 @@ export const changeDefaultView = async (input: {
   chartType?: string;
 }) =>
   patchOnPayload("dashboard_items", parseInt(input.itemId, 10), {
+    type: input.itemType as any,
     itemType: input.itemType as any,
     chartType: input.chartType,
   }).then((r) => r);

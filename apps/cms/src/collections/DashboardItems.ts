@@ -22,5 +22,6 @@ export const DashboardItems: CollectionConfig = {
     { name: 'itemType', type: 'select', options: ['chart', 'table'] },
     { name: 'chartType', type: 'select', options: ['bar', 'line', 'pie'] },
     { name: 'width', type: 'number', min: 1, max: 12, defaultValue: 4 },
+    { name: 'height', type: 'number', min: 1, max: 12, defaultValue: 4 },
   ],
 }

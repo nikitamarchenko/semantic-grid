@@ -152,6 +152,7 @@ export interface DashboardItem {
   itemType?: ("chart" | "table") | null;
   chartType?: ("bar" | "line" | "pie") | null;
   width?: number | null;
+  height?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -304,6 +305,7 @@ export interface DashboardItemsSelect<T extends boolean = true> {
   itemType?: T;
   chartType?: T;
   width?: T;
+  height?: T;
   updatedAt?: T;
   createdAt?: T;
 }
