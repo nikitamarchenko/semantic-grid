@@ -79,11 +79,21 @@ export const SemanticGridMenu = ({
 
   const openMenu = Boolean(anchorEl);
 
-  const handleButtonClick = (event: React.MouseEvent<HTMLElement>) => {
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
+    const html = [...document.getElementsByTagName("html")][0];
+    if (html) {
+      html.style.overflow = "hidden";
+    }
   };
 
-  const handleClose = () => setAnchorEl(null);
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    const html = [...document.getElementsByTagName("html")][0];
+    if (html) {
+      html.style.overflow = "auto";
+    }
+  };
 
   const onSaveClicked = async () => {
     if (editMode) {
@@ -97,7 +107,10 @@ export const SemanticGridMenu = ({
       <Tooltip title={tooltips[mode]} ref={ref}>
         <IconButton
           color={openMenu ? "primary" : (colors[mode] as any)}
-          onClick={handleButtonClick}
+          onClick={handleMenuClick}
+          aria-controls={openMenu ? "account-menu" : undefined}
+          aria-haspopup="true"
+          aria-expanded={openMenu ? "true" : undefined}
           sx={{
             "&:hover": {
               color: "primary.main",
@@ -138,11 +151,13 @@ export const SemanticGridMenu = ({
         </Popover>
       )}
       <Menu
+        id="account-menu"
+        disablePortal
         anchorEl={anchorEl}
-        elevation={1}
+        // elevation={1}
         open={openMenu}
-        onClose={handleClose}
-        onClick={handleClose}
+        onClose={handleMenuClose}
+        onClick={handleMenuClose}
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
         sx={{
@@ -152,6 +167,22 @@ export const SemanticGridMenu = ({
           },
           "& .MuiButtonBase-root:last-of-type": {
             borderTop: `1px solid ${"palette.grey[300]"}`,
+          },
+        }}
+        slotProps={{
+          paper: {
+            elevation: 0,
+            sx: {
+              overflow: "visible",
+              filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+              mt: 1.5,
+              "& .MuiAvatar-root": {
+                width: 32,
+                height: 32,
+                ml: -0.5,
+                mr: 1,
+              },
+            },
           },
         }}
       >

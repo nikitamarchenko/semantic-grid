@@ -79,7 +79,13 @@ const TopNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
               href={d.slug}
               variant="text"
               color={pathname === d.slug ? "primary" : "inherit"}
-              sx={{ textTransform: "none" }}
+              sx={{
+                textTransform: "none",
+                "&.MuiButtonBase-root.MuiButton-root": {
+                  fontSize: "1.1rem",
+                  fontWeight: 900,
+                },
+              }}
             >
               {d.name}
             </Button>
