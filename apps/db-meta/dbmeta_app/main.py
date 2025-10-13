@@ -63,8 +63,17 @@ async def check_mcp(mcp_server: FastMCP):
     return mcp_server
 
 
-if __name__ == "__main__":
+def main():
+    """
+    Console entry point for `db-meta`. Must be a sync callable.
+    """
+    # Optional: skip this on production boots if it slows startup; gate via env
+    # if settings.check_mcp_on_start:
     asyncio.run(check_mcp(mcp))
 
-    # Start the FastAPI server
+    # Start the FastMCP (FastAPI/uvicorn) server; this is typically blocking.
     mcp.run(transport="sse", host="0.0.0.0", port=settings.port)
+
+
+if __name__ == "__main__":
+    main()

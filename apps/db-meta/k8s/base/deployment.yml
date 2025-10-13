@@ -18,7 +18,7 @@ spec:
       containers:
         - name: dbmeta-app
           imagePullPolicy: IfNotPresent
-          command: ["./run.sh"]
+          # command: ["./run.sh"]
           ports:
             - containerPort: 8080
           envFrom:

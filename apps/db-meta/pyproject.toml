@@ -134,4 +134,4 @@ dev = [
 ]
 
 [project.scripts]
-db-meta = "dbmeta_app:main"
+db-meta = "dbmeta_app.main:main"
