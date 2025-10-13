@@ -29,7 +29,7 @@ export const buildGridColumns = (query: TQuery) => {
 
   return (
     query.columns?.map((col: TColumn, idx: number) => ({
-      field: col.id || `col_${idx}`,
+      field: col.column_name || `col_${idx}`,
       headerName: col.column_alias
         ?.replace(/_/g, " ")
         .replace(/^\w/, (c: any) => c.toUpperCase()),

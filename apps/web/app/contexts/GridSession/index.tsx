@@ -528,7 +528,7 @@ export const GridSessionProvider = ({
     (c: any) =>
       c.id === sortModel[0]?.field || c.column_name === sortModel[0]?.field,
   );
-  const sortBy = sortByCol?.id?.replace("col_", "");
+  const sortBy = sortByCol?.column_name?.replace("col_", "");
   const sortOrder = sortModel[0]?.sort || "asc";
 
   const {
@@ -597,7 +597,7 @@ export const GridSessionProvider = ({
     const columns = query?.columns || metadata?.columns;
     const userColumns =
       columns?.map((col: TColumn, idx: number) => ({
-        field: col.id || `col_${idx}`,
+        field: col.column_name || `col_${idx}`,
         headerName: col.column_alias
           ?.replace(/_/g, " ")
           .replace(/^\w/, (c: any) => c.toUpperCase()),

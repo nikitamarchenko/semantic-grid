@@ -80,31 +80,127 @@ from typing import Optional
 def replace_order_by(sql: str, new_order_by: Optional[str]) -> str:
     sql = sql.strip().rstrip(";")
 
-    # Match existing ORDER BY ... (non-greedy) until LIMIT, OFFSET, FETCH, or end
-    order_by_pattern = r"\bORDER\s+BY\s+[^)]+?(?=(\bLIMIT\b|\bOFFSET\b|\bFETCH\b|$))"
-    trailing_clause_pattern = r"(\s+LIMIT\b.*|\s+OFFSET\b.*|\s+FETCH\b.*)$"
+    order_by_pattern = re.compile(
+        r"\bORDER\s+BY\s+[^)]+?(?=(\bLIMIT\b|\bOFFSET\b|\bFETCH\b|$))",
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    trailing_clause_pattern = re.compile(
+        r"(\s+LIMIT\b.*|\s+OFFSET\b.*|\s+FETCH\b.*)$",
+        flags=re.IGNORECASE | re.DOTALL,
+    )
 
     if new_order_by:
-        # If an ORDER BY exists, replace it
-        if re.search(order_by_pattern, sql, flags=re.IGNORECASE):
-            return re.sub(
-                order_by_pattern, f"ORDER BY {new_order_by} ", sql, flags=re.IGNORECASE
+        matches = list(order_by_pattern.finditer(sql))
+        if matches:
+            # Replace only the last one
+            last = matches[-1]
+            return (
+                sql[: last.start()]
+                + f"ORDER BY {new_order_by} "
+                + sql[last.end() :]
             )
         else:
-            # Place ORDER BY before trailing LIMIT/OFFSET/FETCH, if they exist
-            match = re.search(trailing_clause_pattern, sql, flags=re.IGNORECASE)
-            if match:
+            # Append new ORDER BY before trailing LIMIT/OFFSET/FETCH
+            m = trailing_clause_pattern.search(sql)
+            if m:
                 return (
-                    sql[: match.start()]
+                    sql[: m.start()]
                     + f" ORDER BY {new_order_by} "
-                    + sql[match.start() :]
+                    + sql[m.start() :]
                 )
             else:
                 return f"{sql} ORDER BY {new_order_by} "
     else:
-        # No ORDER BY wanted, so remove it if present
-        return re.sub(order_by_pattern, " ", sql, flags=re.IGNORECASE)
+        # Remove only the *last* ORDER BY (if any)
+        matches = list(order_by_pattern.finditer(sql))
+        if not matches:
+            return sql
+        last = matches[-1]
+        return sql[: last.start()] + " " + sql[last.end():]
 
+import re
+from typing import Optional, Tuple
+
+# Trailing clauses we want to remove from the *inner* query:
+# - final ORDER BY (up to LIMIT/OFFSET/FETCH or end)
+# - trailing LIMIT/OFFSET/FETCH
+# We’ll remove them conservatively from the very end, not touching CTEs/subqueries.
+_ORDER_BY_TAIL_RE = re.compile(
+    r"""            # from the last ORDER BY to end (stopping before a nested clause isn't trivial, so do only tail)
+    (               # capture group for replacement
+      \s+ORDER\s+BY\s+[^;]*?    # ORDER BY ... (non-greedy)
+      (?=(\s+LIMIT\b|\s+OFFSET\b|\s+FETCH\b|$))  # up to LIMIT/OFFSET/FETCH or end
+    )
+    """,
+    re.IGNORECASE | re.DOTALL | re.VERBOSE,
+)
+
+_TRAILING_LIMIT_OFFSET_FETCH_RE = re.compile(
+    r"(\s+LIMIT\b.*|\s+OFFSET\b.*|\s+FETCH\b.*)$",
+    re.IGNORECASE | re.DOTALL,
+)
+
+# Accept bare identifiers or dotted (alias.column); we’ll keep only the column piece for the outer query.
+_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?$")
+
+def _strip_final_order_by_and_trailing(sql: str) -> str:
+    s = sql.strip().rstrip(";")
+
+    # Remove only the *last* ORDER BY at the tail
+    matches = list(_ORDER_BY_TAIL_RE.finditer(s))
+    if matches:
+        last = matches[-1]
+        s = s[: last.start()] + s[last.end():]
+
+    # Remove trailing LIMIT/OFFSET/FETCH from the remaining tail
+    m = _TRAILING_LIMIT_OFFSET_FETCH_RE.search(s)
+    if m:
+        s = s[: m.start()]
+
+    return s.strip()
+
+def _sanitize_sort_by(sort_by: Optional[str]) -> Optional[str]:
+    if not sort_by:
+        return None
+    sb = sort_by.strip()
+    # allow quoted accidental inputs like "token"
+    if (sb.startswith('"') and sb.endswith('"')) or (sb.startswith('`') and sb.endswith('`')):
+        sb = sb[1:-1].strip()
+    if not _IDENTIFIER_RE.match(sb):
+        return None
+    # Use only the last segment (the final SELECT alias)
+    return sb.split(".")[-1]
+
+def build_sorted_paginated_sql(
+    user_sql: str,
+    *,
+    sort_by: Optional[str],
+    sort_order: str,  # 'asc' | 'desc' (validated by FastAPI)
+    include_total_count: bool = False,  # set True if you want COUNT() OVER () AS total_count
+) -> str:
+    body = _strip_final_order_by_and_trailing(user_sql)
+
+    if include_total_count:
+        outer_select = "SELECT t.*, COUNT(*) OVER () AS total_count"
+    else:
+        outer_select = "SELECT t.*"
+
+    base = f"""
+        {outer_select}
+        FROM (
+        {body}
+        ) AS t
+    """
+
+    col = _sanitize_sort_by(sort_by)
+    if col:
+        direction = "ASC" if sort_order.lower() == "asc" else "DESC"
+        # Always anchor to outer alias to avoid ambiguity from CTEs/joins
+        base += f"\nORDER BY t.{col} {direction}"
+
+    # Always page on the outer query
+    base += "\nLIMIT :limit\nOFFSET :offset"
+    return base
 
 async def verify_any_token(
     guest: dict = Depends(guest_auth.verify), user: dict = Depends(auth.verify)
@@ -759,6 +855,7 @@ async def get_query_data(
     sort_order: str = Query("asc", regex="^(asc|desc)$"),
     db: AsyncSession = Depends(get_db),
 ) -> Response:
+    original_sql = ""
     sql = ""
     current_view = View(sort_by=sort_by, sort_order=sort_order) if sort_by else None
 
@@ -789,13 +886,13 @@ async def get_query_data(
                     if sort_by and sort_order
                     else None
                 )
-                sql = replace_order_by(sql, new_order_clause)
-                await update_request(
-                    db=db,
-                    update=UpdateRequestModel(
-                        request_id=query_id, view=current_view, sql=sql
-                    ),
-                )
+                # sql = replace_order_by(sql, new_order_clause)
+                # await update_request(
+                #    db=db,
+                #    update=UpdateRequestModel(
+                #        request_id=query_id, view=current_view, sql=sql
+                #    ),
+                # )
             else:
                 raise HTTPException(
                     status_code=400, detail="Query not found in request"
@@ -825,24 +922,24 @@ async def get_query_data(
                     sort_order = (
                         current_view.sort_order if current_view else (sort_order or "")
                     )
-                    new_order_clause = (
-                        f"{sort_by} {sort_order.upper()}"
-                        if sort_by and sort_order
-                        else None
-                    )
-                    updated_sql = replace_order_by(sql, new_order_clause)
+                    # new_order_clause = (
+                    #    f"{sort_by} {sort_order.upper()}"
+                    #    if sort_by and sort_order
+                    #    else None
+                    # )
+                    # updated_sql = replace_order_by(sql, new_order_clause)
 
-                    if updated_sql != sql:
-                        # Persist new SQL with updated ORDER BY
-                        session_response.metadata["sql"] = updated_sql
-                        session_response.metadata["view"] = current_view
-                        await update_query_metadata(
-                            query_id,
-                            session_response.user,
-                            session_response.metadata,
-                            db,
-                        )
-                        sql = updated_sql  # use the new version
+                    # if updated_sql != sql:
+                    #    # Persist new SQL with updated ORDER BY
+                    #    session_response.metadata["sql"] = updated_sql
+                    #    session_response.metadata["view"] = current_view
+                    #    await update_query_metadata(
+                    #        query_id,
+                    #        session_response.user,
+                    #        session_response.metadata,
+                    #        db,
+                    #    )
+                    #    sql = updated_sql  # use the new version
 
             else:
                 raise HTTPException(status_code=404, detail="Query not found")
@@ -853,14 +950,21 @@ async def get_query_data(
     # Step 3: Execute count and main query
     # count_sql = f"SELECT count(*) FROM ({sql}) AS subquery;"
     # query_sql = f"SELECT * FROM ({sql}) AS subquery LIMIT :limit OFFSET :offset"
-    combined_sql = f"""
-        SELECT
-            t.*,
-            COUNT(*) OVER () AS total_count
-        FROM ({sql}) AS t
-        LIMIT :limit 
-        OFFSET :offset
-    """
+    # combined_sql = f"""
+    #    SELECT
+    #        t.*,
+    #        COUNT(*) OVER () AS total_count
+    #    FROM ({sql}) AS t
+    #    LIMIT :limit
+    #    OFFSET :offset
+    # """
+    combined_sql = build_sorted_paginated_sql(
+        sql,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        include_total_count=True,     # or False if you don't need it
+    )
+    # print('SQL', combined_sql)
 
     with wh_session() as session:
         try:

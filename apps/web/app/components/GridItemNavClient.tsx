@@ -40,7 +40,7 @@ const GridItemNavClient = ({
   const { mode, setMode } = useContext(ThemeContext);
   const { setNavOpen, editMode, setEditMode } = useContext(AppContext);
   const { view } = useItemViewContext();
-  console.log("grid nav items", metadata, queryUid, uid);
+  // console.log("grid nav items", metadata, queryUid, uid);
 
   const handleToggle = () => {
     if (editMode && queryUid) {

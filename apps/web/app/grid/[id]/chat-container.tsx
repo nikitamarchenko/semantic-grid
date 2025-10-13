@@ -273,6 +273,7 @@ export const ChatContainer = ({
     scrollRef,
     setPromptVal,
     isLoading,
+    isValidating,
     requestId,
     setRequestId,
   } = useGridSession();
@@ -471,6 +472,16 @@ export const ChatContainer = ({
     return "General";
   };
 
+  const isEmptyChat = useMemo(
+    () =>
+      !metadata &&
+      !pending &&
+      !isLoading &&
+      !isValidating &&
+      sects?.length === 0,
+    [metadata, pending, isLoading, isValidating, sects],
+  );
+
   return (
     <Paper
       elevation={0}
@@ -626,7 +637,7 @@ export const ChatContainer = ({
           <Box
             sx={{
               position: hasData ? "static" : "fixed",
-              bottom: 0,
+              bottom: isEmptyChat ? "30vh" : 0,
               left: 0,
               width: "100%",
               zIndex: 1000,
@@ -643,13 +654,12 @@ export const ChatContainer = ({
                 justifyContent="space-between"
                 sx={{ px: 2 }}
               >
-                {!metadata && !pending && (
+                {isEmptyChat && (
                   <Typography variant="body2" color="textSecondary">
                     Ask Anything About Solana Based Tokens:
                   </Typography>
                 )}
-                {!metadata &&
-                  !pending &&
+                {isEmptyChat &&
                   followUps.map((f: string) => (
                     <Box
                       key={f}
