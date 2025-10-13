@@ -48,3 +48,18 @@ export const toChatHistoryEntry = (s: any) =>
     message_count: s.message_count || 0,
     parent: s.parent || undefined,
   }) as TChat;
+
+export const toUserHistoryEntry = (s: any) =>
+  ({
+    uid: s.session_id,
+    name: s.metadata?.summary || (s.name as string),
+    lastUpdated: s.created_at as any,
+    tags:
+      s.tags
+        ?.split(",")
+        .map((t: string) => t.trim())
+        .filter(Boolean) || [],
+    // messages: [],
+    message_count: s.message_count || 0,
+    // parent: s.parent || undefined,
+  }) as any;

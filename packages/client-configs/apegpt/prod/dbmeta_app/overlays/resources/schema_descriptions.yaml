@@ -487,42 +487,6 @@ profiles:
           Contains information about decentralized exchange (DEX) transactions on the Solana blockchain.
           Use this table to look for token swaps (trades).
 
-      ##
-      ## CREATE TABLE ct.trades
-      #(
-      #    `slot` Int64,
-      #    `ts` DateTime64(6),
-      #    `signature` Nullable(String),
-      #    `index_in_block` Nullable(Int32),
-      #    `signers` Array(Nullable(String)),
-      #    `program_id` Nullable(String),
-      #    `dex` Nullable(String),
-      #    `dex_name` Nullable(String),
-      #    `dex_order_in_tx` Nullable(Int64),
-      #    `source_mint` Nullable(String),
-      #    `destination_mint` Nullable(String),
-      #    `source_amount` Nullable(Decimal(38, 18)),
-      #    `destination_amount` Nullable(Decimal(38, 18)),
-      #    `source_account` Nullable(String),
-      #    `destination_account` Nullable(String),
-      #    `source_account_owner` String,
-      #    `destination_account_owner` String,
-      #    `source_decimals` Nullable(Int16),
-      #    `destination_decimals` Nullable(Int16),
-      #    `source_calculated_amount` Nullable(Float64),
-      #    `destination_calculated_amount` Nullable(Float64),
-      #    `destination_ticker_verified` Nullable(Bool),
-      #    `destination_ticker` Nullable(String),
-      #    `destination_ticker_description` Nullable(String),
-      #    `source_ticker` Nullable(String),
-      #    `source_ticker_verified` Nullable(Bool),
-      #    `source_ticker_description` Nullable(String),
-      #    `destination_rate_to_udc` Nullable(Float64),
-      #    `source_rate_to_udc` Nullable(Float64),
-      #    `source_calculated_amount_in_usdc` Nullable(Float64),
-      #    `destination_calculated_amount_in_usdc` Nullable(Float64),
-      #    `day` Nullable(String)
-      #)
       trades:
         description: |
           Contains information about decentralized exchange (DEX) transactions on the Solana blockchain.
@@ -593,6 +557,85 @@ profiles:
             day:
                 hidden: true
                 description: The day when the trade occurred (in YYYYMMDD format).
+
+      enriched_trades:
+        description: |
+          Contains information about profitability of decentralized exchange (DEX) trades on the Solana blockchain.
+          Use this table ONLY if asked about trades profitability.
+        columns:
+            slot:
+                description: Slot number in the Solana blockchain (a slot is a logical time interval in the blockchain).
+            ts:
+                description: Timestamp of the transaction (when it was recorded in the block).
+            signature:
+                description: Transaction signature, a unique identifier.
+            index_in_block:
+                description: Index of the transaction within the block.
+            signers:
+                description: List of accounts that signed the transaction.
+            program_id:
+                description: Address of the Solana program associated with this token.
+            dex:
+                description: Name of the decentralized exchange (DEX) where the trade occurred.
+            dex_name:
+                description: Human-readable name of the DEX.
+            dex_order_in_tx:
+                description: Order of the DEX operation within the transaction.
+            source_mint:
+                description: Token mint address for the source token in the trade.
+            destination_mint:
+                description: Token mint address for the destination token in the trade.
+            source_amount:
+                description: Amount of source tokens involved in the trade (in smallest units).
+            destination_amount:
+                description: Amount of destination tokens received from the trade (in smallest units).
+            source_account:
+                description: Program Derived Token Address (PDA) of the source token account.
+            destination_account:
+                description: Program Derived Token Address (PDA) of the destination token account.
+            source_account_owner:
+                description: Owner of the source token account.
+            destination_account_owner:
+                description: Owner of the destination token account.
+            source_decimals:
+                description: Number of decimal places for the source token amount.
+            destination_decimals:
+                description: Number of decimal places for the destination token amount.
+            source_calculated_amount:
+                description: Human-readable format of the source amount (source_amount / 10^source_decimals).
+            destination_calculated_amount:
+                description: Human-readable format of the destination amount (destination_amount / 10^destination_decimals).
+            destination_ticker_verified:
+                description: Flag indicating if destination ticker is verified.
+            destination_ticker:
+                description: Ticker symbol for the destination token, if available.
+            destination_ticker_description:
+                description: Description or additional information about the destination ticker.
+            source_ticker:
+                description: Ticker symbol for the source token, if available.
+            source_ticker_verified:
+                description: Flag indicating if source ticker is verified.
+            source_ticker_description:
+                description: Description or additional information about the source ticker.
+            destination_rate_to_udc:
+                description: Rate of the destination token in USD (USDC).
+            source_rate_to_udc:
+                description: Rate of the source token in USD (USDC).
+            source_calculated_amount_in_usdc:
+                description: Human-readable format of the source amount in USD (source_amount * source_rate_to_udc).
+            destination_calculated_amount_in_usdc:
+                description: Human-readable format of the destination amount in USD (destination_amount * destination_rate_to_udc).
+            day:
+                hidden: true
+                description: The day when the trade occurred (in YYYYMMDD format).
+            side:
+                description: BUY or SELL trade side, from the perspective of the wallet.
+            cost_basis_usd:
+                description: summed up matched BUY costs in USD (SELL rows only)
+            profit_usd:
+              description: sum_usd(sell) - cost_basis_usd (SELL rows only)
+            profit_pct:
+              description: profit_usd / cost_basis_usd (SELL rows only)
 
       rates:
         hidden: true

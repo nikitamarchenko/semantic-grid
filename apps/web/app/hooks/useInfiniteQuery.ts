@@ -45,7 +45,7 @@ const getKey = (
   if (!id || !sql) return null;
   if (previousPageData && previousPageData.rows.length === 0) return null; // no more pages
   const offset = pageIndex * limit;
-  return [API_URL, id, offset, limit, sortBy, sortOrder, btoa(sql)];
+  return [API_URL, id, offset, limit, sortBy, sortOrder /* btoa(sql) */];
 };
 
 export const useInfiniteQuery = ({
@@ -61,7 +61,7 @@ export const useInfiniteQuery = ({
   sortBy?: string;
   sortOrder?: "asc" | "desc";
 }) => {
-  // console.log("useInfiniteQuery", sortBy, sortOrder);
+  // console.log("useInfiniteQuery req", id, sortBy, sortOrder);
   const abortController = new AbortController();
   const { data, error, isLoading, size, setSize, mutate, isValidating } =
     useSWRInfinite<ApiResponse>(
@@ -78,7 +78,7 @@ export const useInfiniteQuery = ({
       },
     );
 
-  // console.log("useInfiniteQuery", size, isLoading, isValidating);
+  // console.log("useInfiniteQuery res", data, size, isLoading, isValidating);
   const rows = data?.flatMap((page) => page.rows) ?? [];
   const totalRows = data?.[0]?.total_rows ?? 0;
   const isReachingEnd = rows.length >= totalRows;

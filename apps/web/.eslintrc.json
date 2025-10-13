@@ -14,7 +14,7 @@
     "sourceType": "module",
     "project": ["tsconfig.json"]
   },
-  "ignorePatterns": ["*.config.js", "*.json", "types.gen.ts"],
+  "ignorePatterns": ["*.config.js", "*.json", "types.gen.ts", "app/scripts/**"],
   "rules": {
     "no-console": "off", // disable once logging is set up
     "no-underscore-dangle": 0,

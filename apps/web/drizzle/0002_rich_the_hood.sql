@@ -1,0 +1,1 @@
+ALTER TABLE "dashboards" ADD COLUMN "max_items_per_row" integer;

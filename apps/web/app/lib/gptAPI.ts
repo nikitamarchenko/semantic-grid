@@ -8,7 +8,7 @@ import { cache } from "react";
 
 import { hasFreeQuota } from "@/app/lib/authUser";
 import { FreeQuotaExceededError, NonAuthorizedError } from "@/app/lib/errors";
-import type { LegacyFlow, Model } from "@/app/lib/types";
+import type { LegacyFlow, Model, TQuery } from "@/app/lib/types";
 import { DB, Flow } from "@/app/lib/types";
 
 import type { paths } from "../api/apegpt/types.gen";
@@ -373,13 +373,16 @@ export const getAllUserRequestsForSession = async ({ sessionId }: any) => {
   return res.data;
 };
 
-export const getQuery = cache(async ({ queryId }: any) => {
-  const res = await client.GET("/api/v1/query/{query_id}", {
-    params: { path: { query_id: queryId } },
-  });
-  if (res.error) {
-    console.error((res as any).error);
-    return [];
-  }
-  return res.data;
-});
+export const getQuery = cache(
+  async ({ queryId }: any): Promise<TQuery | null> => {
+    const res = await client.GET("/api/v1/query/{query_id}", {
+      params: { path: { query_id: queryId } },
+    });
+    if (res.error) {
+      console.error((res as any).error);
+      return null;
+    }
+
+    return res.data as TQuery;
+  },
+);

@@ -17,7 +17,7 @@ const DashLayout = async ({
 
   return (
     <>
-      <TopNav userId={uid} />
+      <TopNav userId={uid || undefined} />
       {children}
     </>
   );

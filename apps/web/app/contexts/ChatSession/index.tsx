@@ -25,6 +25,7 @@ import React, {
 
 import { createRequest } from "@/app/actions";
 import { increaseTrialCount } from "@/app/chat/actions";
+import { StyledValue } from "@/app/components/StyledValue";
 import { AppContext } from "@/app/contexts/App";
 import { TutorialSteps, useTutorial } from "@/app/contexts/Tutorial";
 import { isSolanaAddress, isSolanaSignature } from "@/app/helpers/cell";
@@ -37,8 +38,6 @@ import type {
   TColumn,
   TResponseResult,
 } from "@/app/lib/types";
-
-import { StyledValue } from "@/app/components/StyledValue";
 
 export const options: Record<
   string,
@@ -136,7 +135,6 @@ export const getDecision = async (
     }),
   });
   const data = await resp.json();
-  console.log("decision", data?.decision?.decision);
   return data?.decision?.decision || "interactive_query";
 };
 
@@ -379,7 +377,6 @@ export const ChatSessionProvider = ({
   };
 
   const onAdd = (message?: string) => {
-    console.log("onAdd", message);
     setNewCol(true);
     if (!sections.some((s) => s.id === `new_column`)) {
       setSections((prevSections) => [
@@ -401,7 +398,6 @@ export const ChatSessionProvider = ({
   };
 
   useEffect(() => {
-    console.log("sections", sections);
     setSects(sections);
   }, [sections]);
 
@@ -526,7 +522,7 @@ export const ChatSessionProvider = ({
     (c: any) =>
       c.id === sortModel[0]?.field || c.column_name === sortModel[0]?.field,
   );
-  const sortBy = sortByCol?.column_name;
+  const sortBy = sortByCol?.id?.replace("col_", "");
   const sortOrder = sortModel[0]?.sort || "asc";
 
   const {
@@ -595,7 +591,7 @@ export const ChatSessionProvider = ({
     const columns = query?.columns || metadata?.columns;
     const userColumns =
       columns?.map((col: TColumn, idx: number) => ({
-        field: col.id || `col_${idx}`,
+        field: col.column_name || `col_${idx}`,
         headerName: col.column_alias
           ?.replace(/_/g, " ")
           .replace(/^\w/, (c: any) => c.toUpperCase()),
@@ -708,11 +704,9 @@ export const ChatSessionProvider = ({
       activeColumn.field !== "__add_column__" &&
       activeColumn.field !== "general"
         ? [
-            canonical(metadata, activeColumn.field)?.column_name,
+            canonical(metadata, activeColumn.field)?.id,
             ...data.map((r) =>
-              r[
-                canonical(metadata, activeColumn.field)?.column_name
-              ]?.toString(),
+              r[canonical(metadata, activeColumn.field)?.id]?.toString(),
             ),
           ]
         : undefined,

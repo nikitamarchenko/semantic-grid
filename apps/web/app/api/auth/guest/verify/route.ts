@@ -39,7 +39,7 @@ export const GET = async (req: NextRequest) => {
     );
   }
   if (res) {
-    return NextResponse.json({ valid: true });
+    return NextResponse.json({ valid: true, payload: res.payload });
   }
   return NextResponse.json(
     { valid: false, message: "Invalid token" },

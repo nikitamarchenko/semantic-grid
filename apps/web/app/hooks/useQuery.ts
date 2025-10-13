@@ -1,6 +1,32 @@
-import useSWR from "swr";
+import { useCallback, useMemo, useState } from "react";
+import useSWR, { unstable_serialize, useSWRConfig } from "swr";
 
 export const UnauthorizedError = new Error("Unauthorized");
+
+const LS_KEY = "app-cache-freshness";
+
+type Freshness = Record<string, number>;
+
+const serializeKey = (key: any) => (key ? unstable_serialize(key) : null);
+
+const readFreshness = (): Freshness => {
+  try {
+    return JSON.parse(localStorage.getItem(LS_KEY) || "{}") as Freshness;
+  } catch {
+    return {};
+  }
+};
+
+export const setFreshness = (key: string, ts = Date.now()) => {
+  const f = readFreshness();
+  f[key] = ts;
+  localStorage.setItem(LS_KEY, JSON.stringify(f));
+};
+
+export const getFreshness = (key: string): number | null => {
+  const f = readFreshness();
+  return typeof f[key] === "number" ? f[key] : null;
+};
 
 const fetcher = async ([url, id, limit, offset, sortBy, sortOrder]: [
   url: string,
@@ -28,6 +54,9 @@ const fetcher = async ([url, id, limit, offset, sortBy, sortOrder]: [
   throw UnauthorizedError;
 };
 
+// Remove non-ASCII characters to avoid 400 error from API
+const sanitize = (str: string) => str.replace(/[^\x20-\x7E]+/g, "");
+
 export const useQuery = ({
   id,
   sql,
@@ -37,20 +66,25 @@ export const useQuery = ({
   sortOrder,
 }: {
   id?: string;
-  sql?: string;
+  sql?: string; // not used
   limit?: number;
   offset?: number;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
 }) => {
+  const { mutate: mutateCache } = useSWRConfig();
+  const [force, setForce] = useState<boolean>(false);
+
   // console.log("useQuery", id, limit, offset, sortBy, sortOrder);
-  const sqlHash = sql ? btoa(sql) : "";
-  const { data, error, isLoading, mutate } = useSWR(
-    id && sql
-      ? [`/api/apegpt/data`, id, limit, offset, sortBy, sortOrder, sqlHash]
-      : null,
+  // const sqlHash = sql ? btoa(sanitize(sql)) : "";
+  const key = id
+    ? [`/api/apegpt/data`, id, limit, offset, sortBy, sortOrder]
+    : null;
+  const { data, error, isLoading, isValidating, mutate } = useSWR(
+    key,
     fetcher,
     {
+      keepPreviousData: true,
       shouldRetryOnError: false,
       // cacheTime: 0,
       revalidateOnFocus: false,
@@ -59,8 +93,40 @@ export const useQuery = ({
       refreshWhenOffline: false,
       refreshWhenHidden: false,
       refreshInterval: 0,
+      onSuccess(data, k, c) {
+        // console.log("useQuery onSuccess", id, k);
+        if (k) setFreshness(k as string);
+      },
     },
   );
 
-  return { data, error, isLoading, mutate };
+  const fetchedAt = key ? getFreshness(serializeKey(key) as string) : null;
+
+  const refresh = useCallback(async () => {
+    if (!key) return;
+    setForce(true);
+    try {
+      await mutate();
+    } finally {
+      setForce(false);
+      setFreshness(serializeKey(key) as string);
+    }
+  }, [key]);
+
+  const isRefreshing = useMemo(
+    () => force || isValidating,
+    [isValidating, force],
+  );
+
+  return {
+    data,
+    error,
+    isLoading,
+    isValidating,
+    isRefreshing,
+    mutate,
+    mutateCache,
+    refresh,
+    fetchedAt,
+  };
 };

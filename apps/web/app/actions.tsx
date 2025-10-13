@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getUserAuthSession } from "@/app/lib/authUser";
@@ -11,11 +12,19 @@ import {
   createUserRequestFromQuery,
   createUserSession,
   getAllUserRequestsForSession,
+  getQuery,
   getSingleUserRequest,
   getUserSessions,
   updateUserRequest,
   updateUserSession,
 } from "@/app/lib/gptAPI";
+import {
+  attachQueryToDashboard,
+  attachQueryToUserDashboard,
+  changeDefaultView,
+  detachQueryFromDashboard,
+  ensureUserAndDashboard,
+} from "@/app/lib/payload";
 
 const byTime = (a: any, b: any) =>
   new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -157,4 +166,84 @@ export const updatePage = async ({ sessionId }: any) => {
 export const getUserAuth = async () => {
   console.log("get auth");
   return getUserAuthSession().then((r) => r?.user);
+};
+
+export const getQueryById = async (id: string) => getQuery({ queryId: id });
+
+// app/actions/ensure-session.ts
+
+export const ensureSession = async () => {
+  const sid = cookies().get("uid")?.value;
+  const { userId, dashboardId, uid } = await ensureUserAndDashboard({ sid });
+  console.log("ensuring session, sid:", userId, dashboardId);
+
+  return { uid, dashboardId, userId };
+};
+
+export const addQueryToDashboard = async ({
+  queryUid,
+  itemType = "table",
+}: {
+  queryUid: string;
+  itemType?: "table" | "chart";
+}) => {
+  const { uid, dashboardId, userId } = await ensureSession();
+  console.log("addQueryToDashboard", { uid, dashboardId, queryUid });
+  if (!dashboardId) throw new Error("No dashboardId");
+  if (!queryUid) throw new Error("No queryId");
+
+  await attachQueryToDashboard({ dashboardId, queryUid, itemType });
+
+  revalidatePath(`/user/${userId}`, "page");
+};
+
+export const addQueryToUserDashboard = async ({
+  queryUid,
+  itemType = "table",
+}: {
+  queryUid: string;
+  itemType?: "table" | "chart";
+}) => {
+  const { uid, userId } = await ensureSession();
+  console.log("addQueryToUserDashboard", { uid, queryUid, userId });
+  if (!uid) throw new Error("No user");
+  if (!queryUid) throw new Error("No queryId");
+
+  await attachQueryToUserDashboard({ userId: uid, queryUid, itemType });
+
+  revalidatePath(`/user/${userId}`, "page");
+  return `/user/${userId}`;
+};
+
+export const editDefaultItemView = async ({
+  itemId,
+  itemType,
+  chartType,
+}: {
+  itemId: string;
+  itemType: "table" | "chart";
+  chartType?: string;
+}) => {
+  const { uid, dashboardId } = await ensureSession();
+  console.log("editDefaultItemView", { uid, itemId });
+  // if (!dashboardId) throw new Error("No dashboardId");
+
+  await changeDefaultView({ itemId, itemType, chartType });
+
+  revalidatePath(`/user/${uid}`, "page");
+};
+
+export const deleteQueryFromDashboard = async ({
+  queryUid,
+}: {
+  queryUid: string;
+}) => {
+  const { uid, dashboardId, userId } = await ensureSession();
+  console.log("deleteQueryFromDashboard", { uid, dashboardId, queryUid });
+  if (!dashboardId) throw new Error("No dashboardId");
+  if (!queryUid) throw new Error("No queryId");
+
+  await detachQueryFromDashboard(dashboardId, queryUid);
+
+  revalidatePath(`/user/${userId}`, "page");
 };

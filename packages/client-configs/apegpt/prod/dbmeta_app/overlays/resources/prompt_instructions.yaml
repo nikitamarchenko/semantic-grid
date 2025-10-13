@@ -63,14 +63,23 @@ profiles:
       - |
         When asked about specific token(s) by their ticker name, while using **source_ticker** or **destination_ticker** fields,
         always perform case-insensitive comparison using LOWER() function
+      # - |
+      #  In the context of trading analysis, in reference to winning or losing trades, use the following steps:
+      #    -   Qualified Wallets: Identify wallets that have made fewer than 100 DEX trades per day.
+      #    -	Token Price Calculation: Use any dex swaps token vs USDC/USDT in a slot to calculate average token price in USD.
+      #    -	Cost Basis Calculation: For preceding token buys, calculate the average token buy price (in USD).
+      #    -   PNL calculation: pnl = est_usd_received - (token_sold × avg_price_usd_from_prior_buys)
+      #        Where: est_usd_received = token_sold × slot_price_usd and
+      #        avg_price_usd_from_prior_buys = SUM(usd_spent) / SUM(token_bought) for ts < sell_ts
+      #    -	Profit or Loss Identification: Filter for trades where the sell price (in USD)
+      #        exceeds the average buy price (in USD) for the same amount of tokens (or vise versa).
+      #    -   Win / Loss Ratio is the relation of the amount of winning or losing trades to all trades (for a specific wallet and token).
       - |
-        In the context of trading analysis, in reference to winning or losing trades, use the following steps:
-          -   Qualified Wallets: Identify wallets that have made fewer than 100 DEX trades per day.
-          -	Token Price Calculation: Use any dex swaps token vs USDC/USDT in a slot to calculate average token price in USD.
-          -	Cost Basis Calculation: For preceding token buys, calculate the average token buy price (in USD).
-          -   PNL calculation: pnl = est_usd_received - (token_sold × avg_price_usd_from_prior_buys)
-              Where: est_usd_received = token_sold × slot_price_usd and
-              avg_price_usd_from_prior_buys = SUM(usd_spent) / SUM(token_bought) for ts < sell_ts
-          -	Profit or Loss Identification: Filter for trades where the sell price (in USD)
-              exceeds the average buy price (in USD) for the same amount of tokens (or vise versa).
-          -   Win / Loss Ratio is the relation of the amount of winning or losing trades to all trades (for a specific wallet and token).
+        the DB has 2 tables with similar fields - **trades** and **enriched_trades**
+        differences and use cases:
+            - **trades** table has base data for DEX trades, following tip of the blockchain with minimal delay
+            - **enriched_trades** table has additional aggregated data used for trades profitability analysis and reporting;
+              due to aggregations in ETL, data in this table is delayed by 1 hour compared to **trades** table
+        - |
+        when asked generic questions about DEX trades, use **trades** table. 
+        when asked about profitability of trades, win/loss ratio, or similar, use **enriched_trades** table.

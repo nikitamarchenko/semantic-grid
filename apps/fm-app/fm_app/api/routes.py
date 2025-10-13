@@ -1,4 +1,6 @@
 import base64
+import hashlib
+import json
 import logging
 import os
 import uuid
@@ -7,7 +9,7 @@ from uuid import UUID
 # TODO: do we need these imports here?
 import plotly.graph_objects as go
 from fastapi import APIRouter, Depends, HTTPException, Query, Security
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.security import HTTPBearer
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,7 +38,7 @@ from fm_app.api.model import (
     InteractiveRequestType,
     FlowType,
     DBType,
-    QueryMetadata,
+    QueryMetadata, ModelType,
 )
 from fm_app.db.admin_db import get_all_requests_admin, get_all_sessions_admin
 from fm_app.db.db import (
@@ -78,37 +80,162 @@ from typing import Optional
 def replace_order_by(sql: str, new_order_by: Optional[str]) -> str:
     sql = sql.strip().rstrip(";")
 
-    # Match existing ORDER BY ... (non-greedy) until LIMIT, OFFSET, FETCH, or end
-    order_by_pattern = r"\bORDER\s+BY\s+[^)]+?(?=(\bLIMIT\b|\bOFFSET\b|\bFETCH\b|$))"
-    trailing_clause_pattern = r"(\s+LIMIT\b.*|\s+OFFSET\b.*|\s+FETCH\b.*)$"
+    order_by_pattern = re.compile(
+        r"\bORDER\s+BY\s+[^)]+?(?=(\bLIMIT\b|\bOFFSET\b|\bFETCH\b|$))",
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    trailing_clause_pattern = re.compile(
+        r"(\s+LIMIT\b.*|\s+OFFSET\b.*|\s+FETCH\b.*)$",
+        flags=re.IGNORECASE | re.DOTALL,
+    )
 
     if new_order_by:
-        # If an ORDER BY exists, replace it
-        if re.search(order_by_pattern, sql, flags=re.IGNORECASE):
-            return re.sub(
-                order_by_pattern, f"ORDER BY {new_order_by} ", sql, flags=re.IGNORECASE
+        matches = list(order_by_pattern.finditer(sql))
+        if matches:
+            # Replace only the last one
+            last = matches[-1]
+            return (
+                sql[: last.start()]
+                + f"ORDER BY {new_order_by} "
+                + sql[last.end() :]
             )
         else:
-            # Place ORDER BY before trailing LIMIT/OFFSET/FETCH, if they exist
-            match = re.search(trailing_clause_pattern, sql, flags=re.IGNORECASE)
-            if match:
+            # Append new ORDER BY before trailing LIMIT/OFFSET/FETCH
+            m = trailing_clause_pattern.search(sql)
+            if m:
                 return (
-                    sql[: match.start()]
+                    sql[: m.start()]
                     + f" ORDER BY {new_order_by} "
-                    + sql[match.start() :]
+                    + sql[m.start() :]
                 )
             else:
                 return f"{sql} ORDER BY {new_order_by} "
     else:
-        # No ORDER BY wanted, so remove it if present
-        return re.sub(order_by_pattern, " ", sql, flags=re.IGNORECASE)
+        # Remove only the *last* ORDER BY (if any)
+        matches = list(order_by_pattern.finditer(sql))
+        if not matches:
+            return sql
+        last = matches[-1]
+        return sql[: last.start()] + " " + sql[last.end():]
 
+import re
+from typing import Optional, Tuple
+
+# Trailing clauses we want to remove from the *inner* query:
+# - final ORDER BY (up to LIMIT/OFFSET/FETCH or end)
+# - trailing LIMIT/OFFSET/FETCH
+# We’ll remove them conservatively from the very end, not touching CTEs/subqueries.
+_ORDER_BY_TAIL_RE = re.compile(
+    r"""            # from the last ORDER BY to end (stopping before a nested clause isn't trivial, so do only tail)
+    (               # capture group for replacement
+      \s+ORDER\s+BY\s+[^;]*?    # ORDER BY ... (non-greedy)
+      (?=(\s+LIMIT\b|\s+OFFSET\b|\s+FETCH\b|$))  # up to LIMIT/OFFSET/FETCH or end
+    )
+    """,
+    re.IGNORECASE | re.DOTALL | re.VERBOSE,
+)
+
+_TRAILING_LIMIT_OFFSET_FETCH_RE = re.compile(
+    r"(\s+LIMIT\b.*|\s+OFFSET\b.*|\s+FETCH\b.*)$",
+    re.IGNORECASE | re.DOTALL,
+)
+
+# Accept bare identifiers or dotted (alias.column); we’ll keep only the column piece for the outer query.
+_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?$")
+
+def _strip_final_order_by_and_trailing(sql: str) -> str:
+    s = sql.strip().rstrip(";")
+
+    # Remove only the *last* ORDER BY at the tail
+    matches = list(_ORDER_BY_TAIL_RE.finditer(s))
+    if matches:
+        last = matches[-1]
+        s = s[: last.start()] + s[last.end():]
+
+    # Remove trailing LIMIT/OFFSET/FETCH from the remaining tail
+    m = _TRAILING_LIMIT_OFFSET_FETCH_RE.search(s)
+    if m:
+        s = s[: m.start()]
+
+    return s.strip()
+
+def _sanitize_sort_by(sort_by: Optional[str]) -> Optional[str]:
+    if not sort_by:
+        return None
+    sb = sort_by.strip()
+    # allow quoted accidental inputs like "token"
+    if (sb.startswith('"') and sb.endswith('"')) or (sb.startswith('`') and sb.endswith('`')):
+        sb = sb[1:-1].strip()
+    if not _IDENTIFIER_RE.match(sb):
+        return None
+    # Use only the last segment (the final SELECT alias)
+    return sb.split(".")[-1]
+
+def build_sorted_paginated_sql(
+    user_sql: str,
+    *,
+    sort_by: Optional[str],
+    sort_order: str,  # 'asc' | 'desc' (validated by FastAPI)
+    include_total_count: bool = False,  # set True if you want COUNT() OVER () AS total_count
+) -> str:
+    body = _strip_final_order_by_and_trailing(user_sql)
+
+    if include_total_count:
+        outer_select = "SELECT t.*, COUNT(*) OVER () AS total_count"
+    else:
+        outer_select = "SELECT t.*"
+
+    base = f"""
+        {outer_select}
+        FROM (
+        {body}
+        ) AS t
+    """
+
+    col = _sanitize_sort_by(sort_by)
+    if col:
+        direction = "ASC" if sort_order.lower() == "asc" else "DESC"
+        # Always anchor to outer alias to avoid ambiguity from CTEs/joins
+        base += f"\nORDER BY t.{col} {direction}"
+
+    # Always page on the outer query
+    base += "\nLIMIT :limit\nOFFSET :offset"
+    return base
 
 async def verify_any_token(
     guest: dict = Depends(guest_auth.verify), user: dict = Depends(auth.verify)
 ):
     return guest or user  # If guest verification fails, check regular user verification
 
+
+def sha256_str(s: str) -> str:
+    return hashlib.sha256(s.encode("utf-8")).hexdigest()
+
+
+def compute_sql_hash(sql: str) -> str:
+    return sha256_str(sql.strip().rstrip(";"))
+
+
+def compute_rows_fingerprint(rows: list[dict]) -> str:
+    """
+    Cheap, stable fingerprint over a subset of the data.
+    Avoid hashing the entire result for very large pages:
+      - take first & last row, total_rows count, and limit/offset
+    """
+    if not rows:
+        return sha256_str("empty")
+    first = rows[0]
+    last = rows[-1]
+    # use json dumps with sort_keys for stability
+    return sha256_str(
+        json.dumps({"first": first, "last": last}, sort_keys=True, default=str)
+    )
+
+
+def compute_etag(payload: dict) -> str:
+    """Stable weak ETag from JSON payload."""
+    raw = json.dumps(payload, sort_keys=True, default=str)
+    return f'W/"{hashlib.sha256(raw.encode()).hexdigest()}"'
 
 @api_router.post("/session")
 async def create_session(
@@ -231,7 +358,7 @@ async def create_request(
 
 
 @api_router.post("/request/{session_id}/for_query/{query_id}")
-async def create_request_from_query(
+async def create_request_for_query(
     session_id: UUID,
     query_id: UUID,
     user_request: AddRequestModel,
@@ -294,59 +421,93 @@ async def create_request_from_query(
         )
 
     # create a request from the query
+    # (response, task_id) = await add_request(
+    #    user_owner=user_owner,
+    #    session_id=session_id,
+    #    add_req=AddRequestModel(
+    #        version=Version.interactive,
+    #        request=query.request,
+    #        request_type=InteractiveRequestType.tbd,
+    #        flow=FlowType.interactive,
+    #        model=(
+    #            query.ai_context.get("model") if query.ai_context is not None else None
+    #        ),
+    #        db=DBType.v2,
+    #        refs=None,
+    #        query_id=query_id,  # link to the query
+    #    ),
+    #    db=db,
+    # )
+    # update the request with the query's SQL and summary
+    # await update_request(
+    #    db=db,
+    #    update=UpdateRequestModel(
+    #        request_id=response.request_id,
+    #        sql=query.sql,  # use the SQL from the query
+    #        intent=query.intent,
+    #        response=query.summary,
+    #    ),
+    # )
+    # update the session with the new request name
+    # await update_session(
+    #    user_owner=user_owner,
+    #    session_id=session_id,
+    #    session_patch=PatchSessionModel(name=f"request from query"),
+    #    db=db,
+    # )
+    # metadata = QueryMetadata(
+    #    id=uuid.uuid4(),
+    #    sql=query.sql,
+    #    summary=query.summary,
+    #    result=query.summary,
+    #    columns=query.columns,
+    #    row_count=query.row_count,
+    # )
+    # await update_query_metadata(
+    #    session_id=session_id,
+    #    user_owner=user_owner,
+    #    metadata=metadata.model_dump(),
+    #    db=db,
+    # )
+
     (response, task_id) = await add_request(
         user_owner=user_owner,
         session_id=session_id,
         add_req=AddRequestModel(
             version=Version.interactive,
-            request=query.request,
-            request_type=InteractiveRequestType.tbd,
+            request=f"Starting from existing query", # query.request,
+            request_type=InteractiveRequestType.linked_query,
             flow=FlowType.interactive,
             model=(
-                query.ai_context.get("model") if query.ai_context is not None else None
+                query.ai_context.get("model") if query.ai_context is not None else ModelType.openai_default
             ),
             db=DBType.v2,
             refs=None,
             query_id=query_id,  # link to the query
         ),
-        db=db,
+        db=db
     )
-    # update the request with the query's SQL and summary
-    await update_request(
-        db=db,
-        update=UpdateRequestModel(
-            request_id=response.request_id,
-            sql=query.sql,  # use the SQL from the query
-            intent=query.intent,
-            response=query.summary,
+    wrk_req = WorkerRequest(
+        session_id=session_id,
+        request_id=response.request_id,
+        user=user_owner,
+        request=f"Describe query: {query.sql}",  # query.request,
+        request_type=InteractiveRequestType.linked_query,
+        response=response.response,
+        status=response.status,
+        flow=FlowType.interactive,
+        model=(
+            query.ai_context.get(
+                "model") if query.ai_context is not None else ModelType.openai_default
         ),
-    )
-    # update the session with the new request name
-    await update_session(
-        user_owner=user_owner,
-        session_id=session_id,
-        session_patch=PatchSessionModel(name=f"request from query"),
-        db=db,
-    )
-    metadata = QueryMetadata(
-        id=uuid.uuid4(),
-        sql=query.sql,
-        summary=query.summary,
-        result=query.summary,
-        columns=query.columns,
-        row_count=query.row_count,
-    )
-    await update_query_metadata(
-        session_id=session_id,
-        user_owner=user_owner,
-        metadata=metadata.model_dump(),
-        db=db,
+        db=DBType.v2,
+        refs=None,
+        query=query,
     )
 
-    logging.info(
-        "Created request from query",
-        extra={"action": "request_from_query", "query_id": query_id},
-    )
+    wrk_arg = wrk_req.model_dump()
+    task = wrk_add_request.apply_async(args=[wrk_arg], task_id=task_id)
+    logging.info("Send task for request from query", extra={"action": "send_task", "task_id": task, "query_id": query_id})
 
     return response
 
@@ -693,7 +854,8 @@ async def get_query_data(
     sort_by: Optional[str] = None,
     sort_order: str = Query("asc", regex="^(asc|desc)$"),
     db: AsyncSession = Depends(get_db),
-) -> GetDataResponse:
+) -> Response:
+    original_sql = ""
     sql = ""
     current_view = View(sort_by=sort_by, sort_order=sort_order) if sort_by else None
 
@@ -724,13 +886,13 @@ async def get_query_data(
                     if sort_by and sort_order
                     else None
                 )
-                sql = replace_order_by(sql, new_order_clause)
-                await update_request(
-                    db=db,
-                    update=UpdateRequestModel(
-                        request_id=query_id, view=current_view, sql=sql
-                    ),
-                )
+                # sql = replace_order_by(sql, new_order_clause)
+                # await update_request(
+                #    db=db,
+                #    update=UpdateRequestModel(
+                #        request_id=query_id, view=current_view, sql=sql
+                #    ),
+                # )
             else:
                 raise HTTPException(
                     status_code=400, detail="Query not found in request"
@@ -760,24 +922,24 @@ async def get_query_data(
                     sort_order = (
                         current_view.sort_order if current_view else (sort_order or "")
                     )
-                    new_order_clause = (
-                        f"{sort_by} {sort_order.upper()}"
-                        if sort_by and sort_order
-                        else None
-                    )
-                    updated_sql = replace_order_by(sql, new_order_clause)
+                    # new_order_clause = (
+                    #    f"{sort_by} {sort_order.upper()}"
+                    #    if sort_by and sort_order
+                    #    else None
+                    # )
+                    # updated_sql = replace_order_by(sql, new_order_clause)
 
-                    if updated_sql != sql:
-                        # Persist new SQL with updated ORDER BY
-                        session_response.metadata["sql"] = updated_sql
-                        session_response.metadata["view"] = current_view
-                        await update_query_metadata(
-                            query_id,
-                            session_response.user,
-                            session_response.metadata,
-                            db,
-                        )
-                        sql = updated_sql  # use the new version
+                    # if updated_sql != sql:
+                    #    # Persist new SQL with updated ORDER BY
+                    #    session_response.metadata["sql"] = updated_sql
+                    #    session_response.metadata["view"] = current_view
+                    #    await update_query_metadata(
+                    #        query_id,
+                    #        session_response.user,
+                    #        session_response.metadata,
+                    #        db,
+                    #    )
+                    #    sql = updated_sql  # use the new version
 
             else:
                 raise HTTPException(status_code=404, detail="Query not found")
@@ -788,14 +950,21 @@ async def get_query_data(
     # Step 3: Execute count and main query
     # count_sql = f"SELECT count(*) FROM ({sql}) AS subquery;"
     # query_sql = f"SELECT * FROM ({sql}) AS subquery LIMIT :limit OFFSET :offset"
-    combined_sql = f"""
-        SELECT
-            t.*,
-            COUNT(*) OVER () AS total_count
-        FROM ({sql}) AS t
-        LIMIT :limit 
-        OFFSET :offset
-    """
+    # combined_sql = f"""
+    #    SELECT
+    #        t.*,
+    #        COUNT(*) OVER () AS total_count
+    #    FROM ({sql}) AS t
+    #    LIMIT :limit
+    #    OFFSET :offset
+    # """
+    combined_sql = build_sorted_paginated_sql(
+        sql,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        include_total_count=True,     # or False if you don't need it
+    )
+    # print('SQL', combined_sql)
 
     with wh_session() as session:
         try:
@@ -813,14 +982,40 @@ async def get_query_data(
             else:
                 total_count = 0
 
-            return GetDataResponse(
+            payload = GetDataResponse(
                 query_id=query_id,
                 limit=limit,
                 offset=offset,
-                rows=[
-                    {k: v for k, v in row.items() if k != "total_count"} for row in rows
-                ],
+                rows=[{k: v for k, v in row.items() if k != "total_count"} for row in
+                      rows],
                 total_rows=total_count,
+            )
+
+            # Make a stable ETag
+            etag = compute_etag({
+                "query_id": str(query_id),
+                "limit": limit,
+                "offset": offset,
+                "total_rows": total_count,
+                # Fingerprint first/last row only to avoid huge hashes
+                "rows_fp": hashlib.sha256(
+                    json.dumps({
+                        "first": payload.rows[0] if payload.rows else None,
+                        "last": payload.rows[-1] if payload.rows else None,
+                    }, sort_keys=True, default=str).encode()
+                ).hexdigest(),
+            })
+
+            headers = {
+                "ETag": etag,
+                "Cache-Control": "public, max-age=0, s-maxage=600, stale-while-revalidate=1200",
+                "Vary": "Authorization, Accept, Accept-Encoding",
+            }
+
+            return Response(
+                content=payload.model_dump_json(),  # v1: payload.json()
+                media_type="application/json",
+                headers=headers,
             )
 
         except Exception as e:

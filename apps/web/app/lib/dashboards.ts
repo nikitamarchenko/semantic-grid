@@ -1,3 +1,5 @@
+// Legacy dashboard management (postgres + drizzle-orm)
+
 "use server";
 
 import { readFile } from "node:fs/promises";
@@ -8,6 +10,7 @@ import type { Layout } from "react-grid-layout";
 
 import { db } from "@/app/db";
 import { dashboardItems, dashboards, queries, users } from "@/app/db/schema";
+
 
 export type Dashboard = {
   id: string;
