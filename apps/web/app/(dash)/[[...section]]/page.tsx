@@ -1,6 +1,7 @@
 // app/(dash)/[[...section]]/page.tsx
 import { getSession } from "@auth0/nextjs-auth0";
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import type { Layout } from "react-grid-layout";
 
 import DashboardGrid from "@/app/components/DashboardGrid";
@@ -9,14 +10,13 @@ import { LoginPrompt } from "@/app/components/LoginPrompt";
 import { getDashboardByPath, getDashboardData } from "@/app/lib/payload";
 import type { DashboardItem, Query } from "@/app/lib/payload-types";
 
-function pathFromParams(params: { section?: string[] }) {
+const pathFromParams = (params: { section?: string[] }) =>
   // /            -> ''
   // /tokens      -> 'tokens'
   // /trends/...  -> 'trends'
   // const seg = params.section?.[0] ?? ""; // first segment only
   // return `/${seg}`; // '' -> '/', else '/tokens'
-  return params.section ? `/${params.section.join("/")}` : ""; // '' -> '/', else '/tokens'
-}
+  params.section ? `/${params.section.join("/")}` : ""; // '' -> '/', else '/tokens'
 
 export async function generateMetadata({
   params,
@@ -43,6 +43,9 @@ const Page = async ({ params }: { params: { section?: string[] } }) => {
   const dMeta = await getDashboardByPath(slugPath);
   console.log("Dashboard meta:", slugPath, dMeta);
   const d = await getDashboardData(dMeta?.id || "");
+  if (!dMeta || !d) {
+    notFound();
+  }
   const session = await getSession();
 
   // map to DashboardGrid items

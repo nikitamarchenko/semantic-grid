@@ -742,7 +742,7 @@ async def interactive_flow(
         }
 
         slot = await assembler.render_async(
-            "interactive_query",
+            "data_analysis",
             variables=data_analysis_vars,
             req_ctx=mcp_ctx,
             mcp_caps=db_meta_caps,
@@ -826,7 +826,7 @@ async def interactive_flow(
         req.structured_response = StructuredResponse(
             intent=llm_response.request_type,
             intro=llm_response.response,
-            description=llm_response.description,
+            description=None,
             metadata=request_session.metadata,
             refs=req.refs,
         )

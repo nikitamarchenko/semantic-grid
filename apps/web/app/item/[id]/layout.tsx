@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { ensureSession } from "@/app/actions";
@@ -13,8 +14,12 @@ const ItemLayout = async ({
   children: ReactNode;
 }) => {
   const { uid } = await ensureSession();
-  const dashboards = await getDashboards(uid);
+  const dashboards = await getDashboards(uid || undefined);
   const item = await getDashboardItemData(id);
+
+  if (!item) {
+    notFound();
+  }
 
   return (
     <ItemViewProvider itemId={id} defaultView="chart">

@@ -155,7 +155,8 @@ export const getDashboardData = async (id: string) => {
   // Fetch dashboard
   const dashboard = await getFromPayloadById("dashboards", id);
   if (!dashboard) {
-    throw new Error(`Dashboard not found: ${id}`);
+    return null;
+    // throw new Error(`Dashboard not found: ${id}`);
   }
 
   const maxItems = dashboard.maxItemsPerRow || 2;
@@ -188,7 +189,8 @@ export const getDashboardItemData = async (id: string) => {
   );
 
   if (!row) {
-    throw new Error(`Dashboard item not found: ${id}`);
+    return null;
+    // throw new Error(`Dashboard item not found: ${id}`);
   }
 
   return row;
