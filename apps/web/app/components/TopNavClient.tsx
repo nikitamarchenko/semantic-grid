@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  alpha,
   AppBar,
   Box,
   Button,
@@ -59,7 +60,15 @@ const TopNavClient = ({ dashboards }: { dashboards: Dashboard[] }) => {
   }, [pathname, editMode]);
 
   return (
-    <AppBar position="relative" color="inherit" elevation={0}>
+    <AppBar
+      position="relative"
+      elevation={0}
+      enableColorOnDark
+      sx={{
+        bgcolor: (theme) => alpha(theme.palette.divider, 0.05),
+        color: (theme) => theme.palette.text.primary,
+      }}
+    >
       <Container maxWidth={false}>
         <Toolbar disableGutters sx={{ gap: 2 }}>
           {/* <Button

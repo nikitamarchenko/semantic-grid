@@ -1,6 +1,6 @@
 "use client";
 
-import { AppBar, Box, Button, Container, Toolbar } from "@mui/material";
+import { alpha, AppBar, Box, Button, Container, Toolbar } from "@mui/material";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useContext, useEffect } from "react";
@@ -36,7 +36,7 @@ const GridItemNavClient = ({
 }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const items = dashboards.filter((d) => d.slug !== "/");
+  // const items = dashboards.filter((d) => d.slug !== "/");
   const { mode, setMode } = useContext(ThemeContext);
   const { setNavOpen, editMode, setEditMode } = useContext(AppContext);
   const { view } = useItemViewContext();
@@ -76,10 +76,18 @@ const GridItemNavClient = ({
   };
 
   return (
-    <AppBar position="relative" color="inherit" elevation={0}>
+    <AppBar
+      position="relative"
+      elevation={0}
+      enableColorOnDark
+      sx={{
+        bgcolor: alpha("#EF8626", 0.2),
+        color: (theme) => theme.palette.text.primary,
+      }}
+    >
       <Container maxWidth={false}>
         <Toolbar disableGutters sx={{ gap: 2 }}>
-          <Button
+          {/* <Button
             component={Link}
             href="/"
             variant="text"
@@ -87,16 +95,22 @@ const GridItemNavClient = ({
             sx={{ textTransform: "none" }}
           >
             Home
-          </Button>
+          </Button> */}
 
-          {items.map((d) => (
+          {dashboards.map((d) => (
             <Button
               key={d.id}
               component={Link}
               href={d.slug}
               variant="text"
               color={pathname === d.slug ? "primary" : "inherit"}
-              sx={{ textTransform: "none" }}
+              sx={{
+                textTransform: "none",
+                "&.MuiButtonBase-root.MuiButton-root": {
+                  fontSize: "1.1rem",
+                  fontWeight: 900,
+                },
+              }}
             >
               {d.name}
             </Button>

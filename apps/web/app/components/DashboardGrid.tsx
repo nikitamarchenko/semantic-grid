@@ -53,7 +53,7 @@ const DashboardGrid = ({
         {description && <Typography variant="h6">{description}</Typography>}
         <Box>
           <ResponsiveGridLayout
-            style={{ minHeight: "100vh" }}
+            // style={{ minHeight: "calc(100vh - 64px)" }}
             autoSize
             className="layout"
             breakpoints={{

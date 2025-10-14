@@ -108,7 +108,7 @@ export const SemanticGridMenu = ({
         <IconButton
           color={openMenu ? "primary" : (colors[mode] as any)}
           onClick={handleMenuClick}
-          aria-controls={openMenu ? "account-menu" : undefined}
+          aria-controls={openMenu ? "semantic-grid-menu" : undefined}
           aria-haspopup="true"
           aria-expanded={openMenu ? "true" : undefined}
           sx={{
@@ -151,7 +151,7 @@ export const SemanticGridMenu = ({
         </Popover>
       )}
       <Menu
-        id="account-menu"
+        id="semantic-grid-menu"
         disablePortal
         anchorEl={anchorEl}
         // elevation={1}

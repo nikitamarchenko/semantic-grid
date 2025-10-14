@@ -1,12 +1,11 @@
-import { Close } from "@mui/icons-material";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import {
   Box,
   Divider,
-  Drawer,
   IconButton,
-  List,
+  Menu,
   MenuItem,
+  MenuList,
   Tooltip,
 } from "@mui/material";
 import { usePathname } from "next/navigation";
@@ -33,31 +32,49 @@ export const UserProfileMenu = () => {
 
   const toggleUserProfile = (event: any) => {
     setAnchorEl(event.currentTarget);
+    const html = [...document.getElementsByTagName("html")][0];
+    if (html) {
+      html.style.overflow = "hidden";
+    }
   };
 
   const handleClose = () => {
     setAnchorEl(null);
+    const html = [...document.getElementsByTagName("html")][0];
+    if (html) {
+      html.style.overflow = "auto";
+    }
   };
 
   return (
     <>
       <Tooltip title="User profile and settings">
-        <IconButton onClick={toggleUserProfile} color="inherit">
+        <IconButton
+          onClick={toggleUserProfile}
+          color="inherit"
+          aria-controls={openMenu ? "account-menu" : undefined}
+          aria-haspopup="true"
+          aria-expanded={openMenu ? "true" : undefined}
+        >
           <Box component={AccountCircle} sx={{ color: "text.secondary" }} />
         </IconButton>
       </Tooltip>
-      <Drawer
-        variant="temporary"
-        // anchorEl={anchorEl}
-        anchor="right"
+      <Menu
+        disablePortal
+        // variant="temporary"
+        anchorEl={anchorEl}
+        // anchor="right"
+        id="account-menu"
         elevation={1}
         open={openMenu}
         onClose={handleClose}
         onClick={handleClose}
-        // transformOrigin={{ horizontal: "right", vertical: "top" }}
-        // anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-        PaperProps={{
-          sx: { width: 300 },
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+        slotProps={{
+          paper: {
+            sx: { width: 300 },
+          },
         }}
         sx={{
           "& ul": {
@@ -68,16 +85,7 @@ export const UserProfileMenu = () => {
           },
         }}
       >
-        <Box
-          sx={{ width: "100%", display: "flex", p: 2 }}
-          justifyContent="right"
-          alignItems="center"
-        >
-          <IconButton onClick={handleClose}>
-            <Close />
-          </IconButton>
-        </Box>
-        <List>
+        <MenuList>
           {user && authUser && <MenuItem disabled>Logged in as:</MenuItem>}
           {user && authUser && <MenuItem disabled>{user?.email}</MenuItem>}
           {user && !authUser && <MenuItem>Guest Mode</MenuItem>}
@@ -111,8 +119,8 @@ export const UserProfileMenu = () => {
               </>
             </Tooltip>
           </MenuItem>
-        </List>
-      </Drawer>
+        </MenuList>
+      </Menu>
     </>
   );
 };
