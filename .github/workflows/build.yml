@@ -1,0 +1,43 @@
+name: Build
+
+on:
+  schedule:
+    - cron: "29 20 * * *"
+  push:
+    branches:
+      - "main"
+      - "integration-gh-actions"
+
+    # Publish semver tags as releases.
+    tags: ["v*.*.*"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  db-meta:
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    uses: ./.github/workflows/docker-publish.yml
+    with:
+      component-name: db-meta
+      docker-file: ./apps/db-meta/Dockerfile
+  fm-app:
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    uses: ./.github/workflows/docker-publish.yml
+    with:
+      component-name: fm-app
+      docker-file: ./apps/fm-app/Dockerfile
+  web:
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    uses: ./.github/workflows/docker-publish.yml
+    with:
+      component-name: web
+      docker-file: ./apps/web/Dockerfile
