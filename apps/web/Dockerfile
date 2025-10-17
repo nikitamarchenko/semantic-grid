@@ -34,7 +34,8 @@ COPY --from=pruner /repo/out/bun.lock*  ./
 # Use BuildKit cache mounts to speed re-installs
 RUN --mount=type=cache,target=/root/.bun \
     --mount=type=cache,target=/root/.cache/bun \
-    bun install --frozen-lockfile
+    bun install --ignore-scripts
+    # --frozen-lockfile
 
 ############################################
 # Build: copy code only after deps to keep cache
@@ -60,7 +61,9 @@ COPY --from=pruner /repo/out/bun.lock*  ./
 ENV BUN_INSTALL_DEV=false
 RUN --mount=type=cache,target=/root/.bun \
     --mount=type=cache,target=/root/.cache/bun \
-    bun install --frozen-lockfile --production
+    bun install --ignore-scripts
+    # --production
+    # --frozen-lockfile
 
 ############################################
 # Runtime (Node): tiny, predictable
