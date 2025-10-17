@@ -1,6 +1,6 @@
 "use client";
 
-import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import { DataGridPro, type GridColDef } from "@mui/x-data-grid-pro";
 import React, { useMemo } from "react";
 
 import { StyledValue } from "@/app/components/StyledValue";
@@ -102,7 +102,7 @@ export const DashboardTableItem = ({
   );
 
   return (
-    <DataGrid
+    <DataGridPro
       density="compact"
       rows={rows}
       // rowCount={rowCount}

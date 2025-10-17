@@ -66,8 +66,8 @@ const DashboardGrid = ({
             }}
             cols={{ xl: 12, lg: 12, md: 6, sm: 3, xs: 3, xxs: 3 }}
             // rowHeight={400}
-            isDraggable
-            isResizable
+            isDraggable={false}
+            isResizable={false}
             layouts={{
               lg: layout,
               md: [],
