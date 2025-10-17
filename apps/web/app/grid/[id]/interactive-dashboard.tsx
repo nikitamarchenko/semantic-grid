@@ -133,13 +133,29 @@ export const InteractiveDashboard = ({
     setAnchorEl(null);
   };
 
-  const hasParent = ancestors?.filter((a) => a.id !== id).length > 0;
+  const hasParent = useMemo(
+    () => ancestors?.filter((a) => a.id !== id).length > 0,
+    [ancestors, id],
+  );
 
-  const hasData =
-    (Boolean(metadata?.id) &&
-      // Boolean(metadata?.row_count) &&
-      Boolean(metadata?.sql)) ||
-    hasParent;
+  const hasData = useMemo(
+    () =>
+      (Boolean(metadata?.id) &&
+        // Boolean(metadata?.row_count) &&
+        Boolean(metadata?.sql)) ||
+      hasParent,
+    [metadata, hasParent],
+  );
+
+  const showGrid = useMemo(
+    () =>
+      hasData ||
+      Boolean((pendingRequest as any)?.sql) ||
+      Boolean((pendingRequest as any)?.query?.sql),
+    [hasData, pendingRequest],
+  );
+
+  console.log("showGrid", showGrid);
 
   useEffect(() => {
     // setLeftWidth(window.innerWidth);
@@ -152,12 +168,12 @@ export const InteractiveDashboard = ({
 
   useEffect(() => {
     // console.log("hasData", hasData, "leftWidth", leftWidth);
-    if (!hasData) {
+    if (!showGrid) {
       setLeftWidth(""); // Reset left width if no data
-    } else if (hasData && !leftWidth) {
+    } else if (showGrid && !leftWidth) {
       setLeftWidth((window.innerWidth / 3).toString()); // Default to 1/3 of the window width
     }
-  }, [hasData, leftWidth]);
+  }, [showGrid, leftWidth]);
   // console.log("leftWidth", metadata?.id, leftWidth);
 
   useEffect(() => {
@@ -364,7 +380,7 @@ export const InteractiveDashboard = ({
     <Box
       ref={containerRef}
       sx={{
-        height: hasData ? "calc(100vh - 64px)" : "auto", // let height expand naturally
+        height: showGrid ? "calc(100vh - 64px)" : "auto", // let height expand naturally
         // marginTop: "50px", // padding to avoid overlap with app bar
         display: "flex",
         flexDirection: "row", // default direction
@@ -372,17 +388,17 @@ export const InteractiveDashboard = ({
         position: "relative",
         justifyContent: "center",
         overflowX: "hidden",
-        overflowY: hasData ? "auto" : "visible", // disable internal scroll
+        overflowY: showGrid ? "auto" : "visible", // disable internal scroll
         // border: "1px solid #EF8626",
       }}
     >
       {/* Left pane - chat */}
       <Box
         sx={{
-          width: hasData ? `${leftWidth}px` : "100%", // full width when standalone
-          maxWidth: hasData && maxLeftWidth ? `${maxLeftWidth}px` : "100%",
-          flexGrow: hasData ? 1 : 0,
-          flexBasis: hasData ? leftWidth : "auto",
+          width: showGrid ? `${leftWidth}px` : "100%", // full width when standalone
+          maxWidth: showGrid && maxLeftWidth ? `${maxLeftWidth}px` : "100%",
+          flexGrow: showGrid ? 1 : 0,
+          flexBasis: showGrid ? leftWidth : "auto",
           overflow: "visible", // prevent clipping/scrolling
           display: "flex",
           flexDirection: "column",
@@ -398,14 +414,14 @@ export const InteractiveDashboard = ({
             id={id || ""}
             hasParent={ancestors.length > 0}
             pendingRequest={pendingRequest}
-            hasData={hasData}
+            hasData={showGrid}
             metadata={metadata}
           />
         </Container>
       </Box>
 
       {/* Divider handle */}
-      {hasData && (
+      {showGrid && (
         <Box
           component="div"
           // @ts-ignore
@@ -420,7 +436,7 @@ export const InteractiveDashboard = ({
       )}
 
       {/* Right panel -- table */}
-      {hasData && (
+      {showGrid && (
         <Box
           sx={{
             // marginTop: "80px", // padding to avoid overlap with app bar
@@ -434,7 +450,7 @@ export const InteractiveDashboard = ({
           >
             <Slide
               direction="left"
-              in={hasData}
+              in={showGrid}
               mountOnEnter
               unmountOnExit
               timeout={400} // customize speed

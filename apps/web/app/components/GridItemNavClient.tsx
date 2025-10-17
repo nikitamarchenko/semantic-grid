@@ -1,6 +1,14 @@
 "use client";
 
-import { alpha, AppBar, Box, Button, Container, Toolbar } from "@mui/material";
+import {
+  alpha,
+  AppBar,
+  Box,
+  Button,
+  Container,
+  Toolbar,
+  Typography,
+} from "@mui/material";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useContext, useEffect } from "react";
@@ -120,6 +128,13 @@ const GridItemNavClient = ({
           <Box sx={{ flexGrow: 1 }} />
 
           {metadata && <ItemViewSwitcher />}
+          {!metadata && (
+            <Box>
+              <Typography color="primary.main">
+                Semantic Grid AI Edit Mode
+              </Typography>
+            </Box>
+          )}
 
           {/* <LabeledSwitch checked /> */}
 

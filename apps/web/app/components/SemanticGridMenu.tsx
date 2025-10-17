@@ -4,13 +4,10 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
-  alpha,
   Divider,
   IconButton,
   Menu,
   MenuItem,
-  Paper,
-  Popover,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -120,7 +117,7 @@ export const SemanticGridMenu = ({
           <AutoAwesome />
         </IconButton>
       </Tooltip>
-      {mode === "editing" && (
+      {/* mode === "editing" && (
         <Popover
           // id={id}
           open={Boolean(popperEl)}
@@ -149,7 +146,7 @@ export const SemanticGridMenu = ({
             </Typography>
           </Paper>
         </Popover>
-      )}
+      ) */}
       <Menu
         id="semantic-grid-menu"
         disablePortal
