@@ -164,6 +164,7 @@ export const StyledValue = ({
         <IconButton
           component={Link}
           href={`https://solscan.io/account/${trimmedValue}`}
+          target="_blank"
           size="small"
           sx={{ ml: 0 }}
           onClick={handleLinkClick}
