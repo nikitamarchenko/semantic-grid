@@ -14,6 +14,7 @@ import { usePathname, useRouter } from "next/navigation";
 import React, { useContext, useEffect } from "react";
 
 import { addQueryToUserDashboard } from "@/app/actions";
+import { pulse } from "@/app/components/dancing-balls";
 import { ItemViewSwitcher } from "@/app/components/ItemViewSwitcher";
 import { SemanticGridMenu } from "@/app/components/SemanticGridMenu";
 import { UserProfileMenu } from "@/app/components/UserProfileMenu";
@@ -127,14 +128,20 @@ const GridItemNavClient = ({
           {/* Spacer between primary nav and right-side controls */}
           <Box sx={{ flexGrow: 1 }} />
 
-          {metadata && <ItemViewSwitcher />}
           {!metadata && (
             <Box>
-              <Typography color="primary.main">
-                Semantic Grid AI Edit Mode
+              <Typography
+                color="primary.main"
+                sx={{
+                  animation: `${pulse} 1.5s ease-in-out infinite`,
+                }}
+              >
+                Loading AI Editor...
               </Typography>
             </Box>
           )}
+
+          <ItemViewSwitcher />
 
           {/* <LabeledSwitch checked /> */}
 
