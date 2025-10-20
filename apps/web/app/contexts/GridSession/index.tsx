@@ -160,7 +160,7 @@ const enrichedContext = (selectedAction: string, context: string) => {
       (options[selectedAction || ""] || {})?.cta || selectedAction;
     return `${actionLabel} ${processedContext}`;
   }
-  return "Ask anything..."; // selectedAction;
+  return "Describe how to change or refine this query..."; // selectedAction;
 };
 
 const extractSortModelFromSQL = (
@@ -920,7 +920,7 @@ export const GridSessionProvider = ({
     if (activeColumn || activeRows)
       return `${enrichedContext(selectedAction, context)}...`;
 
-    return "Ask anything...";
+    return "Describe how to change or refine this query...";
   };
 
   const handleClick =

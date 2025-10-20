@@ -240,6 +240,9 @@ export const ResponseTextStatus = ({
   return null;
 };
 
+const isVisible = (text: string | undefined = "") =>
+  text !== "Starting from existing query";
+
 export const ChatContainer = ({
   id,
   newCol,
@@ -543,6 +546,7 @@ export const ChatContainer = ({
                             padding: 2,
                             bgcolor: getBgColor({ isBot: i % 2 !== 0 }),
                             width: "fit-content",
+                            display: isVisible(msg.text) ? "inherit" : "none",
                           }}
                         >
                           {i % 2 === 0 && (
