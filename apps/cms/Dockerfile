@@ -1,71 +1,81 @@
-# To use this Dockerfile, you have to set `output: 'standalone'` in your next.config.mjs file.
-# From https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile
+# syntax=docker/dockerfile:1.7
 
-FROM node:22.17.0-alpine AS base
+############################################
+# Base (Bun)
+############################################
+FROM oven/bun:1.2 AS base
+WORKDIR /repo
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Install dependencies only when needed
-FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
+ARG APP_NAME=cms
+ARG APP_DIR=apps/cms
+ENV APP_NAME=${APP_NAME}
+ENV APP_DIR=${APP_DIR}
 
-# Install dependencies based on the preferred package manager
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
-RUN \
-  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
+############################################
+# Prune
+############################################
+FROM base AS pruner
+COPY turbo.json package.json bun.lock* ./
+COPY apps ./apps
+COPY packages ./packages
+RUN bunx turbo@2.5.6 prune --scope="$APP_NAME" --docker
 
+############################################
+# Deps (dev)
+############################################
+FROM oven/bun:1.2 AS deps
+WORKDIR /repo
+ENV NEXT_TELEMETRY_DISABLED=1
+COPY --from=pruner /repo/out/json/ ./
+COPY --from=pruner /repo/out/bun.lock* ./
+ENV BUN_INSTALL_DEV=false
+RUN --mount=type=cache,target=/root/.bun \
+    --mount=type=cache,target=/root/.cache/bun \
+    bun install --ignore-scripts
 
-# Rebuild the source code only when needed
+############################################
+# Build
+############################################
 FROM base AS builder
+COPY --from=deps /repo/node_modules ./node_modules
+COPY --from=pruner /repo/out/full/ ./
+
+RUN bun add -D turbo@2.5.6
+RUN bunx turbo run build --filter="$APP_NAME"
+
+############################################
+# Runtime (Payload official-style Next standalone)
+############################################
+FROM node:20-slim AS runner
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+ENV NODE_ENV=production
+ENV PORT=3000
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-# ENV NEXT_TELEMETRY_DISABLED 1
+# create non-root user like in official payload example
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser  --system --uid 1001 nextjs
 
-RUN \
-  if [ -f yarn.lock ]; then yarn run build; \
-  elif [ -f package-lock.json ]; then npm run build; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
+ARG APP_DIR=apps/cms
 
-# Production image, copy all the files and run next
-FROM base AS runner
-WORKDIR /app
+# COPY --from=builder --chown=nextjs:nodejs /repo/${APP_DIR}/public ./public
 
-ENV NODE_ENV production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED 1
+# --- public (optional) ---
+# COPY --from=builder /repo/${APP_DIR}/public ./public
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# prepare .next folder for static cache
+RUN mkdir .next && chown nextjs:nodejs .next
 
-# Remove this line if you do not have this folder
-COPY --from=builder /app/public ./public
+# --- standalone server + static files ---
+COPY --from=builder --chown=nextjs:nodejs /repo/${APP_DIR}/.next/standalone ./
 
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+WORKDIR /app/apps/cms
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /repo/${APP_DIR}/.next/static ./.next/static
+COPY --from=deps /repo/node_modules ./node_modules
 
 USER nextjs
-
 EXPOSE 3000
 
-ENV PORT 3000
-
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
-CMD HOSTNAME="0.0.0.0" node server.js
+# From official Payload docs: Next standalone outputs server.js
+CMD ["node", "server.js"]

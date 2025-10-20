@@ -42,6 +42,7 @@ const buildGridColumns = (query: TQuery) => {
       sortable: false,
       renderCell: (params: any) => (
         <StyledValue
+          columnName={col.column_name}
           columnType={col.column_type?.replace("Nullable(", "")}
           value={params.value}
           params={params}

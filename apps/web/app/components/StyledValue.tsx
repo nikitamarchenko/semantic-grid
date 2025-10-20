@@ -51,10 +51,12 @@ function isDateOnlyUTC(d: Date) {
 
 export const StyledValue = ({
   columnType,
+  columnName,
   value = "",
   params,
   successors,
 }: {
+  columnName?: string;
   columnType?: string;
   value: string;
   params: any;
@@ -120,7 +122,7 @@ export const StyledValue = ({
           !isInt &&
           maybeNumber.toLocaleString(undefined, {
             minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
+            maximumFractionDigits: 4,
           })}
         {!isFloat &&
           isInt &&
