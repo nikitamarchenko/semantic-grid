@@ -546,7 +546,7 @@ export const ChatContainer = ({
                             padding: 2,
                             bgcolor: getBgColor({ isBot: i % 2 !== 0 }),
                             width: "fit-content",
-                            display: isVisible(msg.text) ? "inherit" : "none",
+                            display: isVisible(msg.text) ? "block" : "none",
                           }}
                         >
                           {i % 2 === 0 && (

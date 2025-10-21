@@ -704,27 +704,32 @@ export const GridSessionProvider = ({
     return rowCountRef.current;
   }, [dataRowCount]);
 
-  const refs = {
-    cols:
-      activeColumn &&
-      activeColumn.field !== "__add_column__" &&
-      activeColumn.field !== "general"
+  const refs = useMemo(
+    () => ({
+      cols:
+        activeColumn &&
+        activeColumn.field !== "__add_column__" &&
+        activeColumn.field !== "general"
+          ? [
+              canonical(metadata, activeColumn.field)?.column_name,
+              ...data.map((r) =>
+                r[
+                  canonical(metadata, activeColumn.field)?.column_name
+                ]?.toString(),
+              ),
+            ]
+          : undefined,
+      rows: activeRows
         ? [
-            canonical(metadata, activeColumn.field)?.id,
-            ...data.map((r) =>
-              r[canonical(metadata, activeColumn.field)?.id]?.toString(),
-            ),
+            metadata.columns.map((c: any) => c.column_alias || c.id),
+            ...activeRows
+              .filter(Boolean)
+              .map((r: any) => Object.values(r).slice(1).filter(Boolean)),
           ]
         : undefined,
-    rows: activeRows
-      ? [
-          metadata.columns.map((c: any) => c.column_alias || c.id),
-          ...activeRows
-            .filter(Boolean)
-            .map((r: any) => Object.values(r).slice(1).filter(Boolean)),
-        ]
-      : undefined,
-  };
+    }),
+    [activeColumn, activeRows, data, metadata],
+  );
 
   const context = useMemo(() => {
     // console.log("ctx", activeRows);
