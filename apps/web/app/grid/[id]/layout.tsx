@@ -14,7 +14,7 @@ const GridLayout = async ({
   params: { id: string };
 }) => {
   const { uid, dashboardId } = await ensureSession();
-  const dashboards = await getDashboards(uid);
+  const dashboards = await getDashboards(uid || undefined);
   const { metadata, ...others } = await getUserSession({ sessionId: id });
   const currentSession = await getAllUserRequestsForSession({ sessionId: id });
   const lastMessage = currentSession
@@ -25,11 +25,12 @@ const GridLayout = async ({
     <ItemViewProvider itemId={id} defaultView="grid">
       <GridItemNavClient
         dashboards={dashboards}
-        uid={uid}
+        uid={uid || undefined}
         dashboardId={dashboardId}
         id={id}
         metadata={metadata}
         queryUid={lastMessage?.query?.query_id}
+        lastMessage={lastMessage}
       />
       {/* <NavDrawer anchor="right" base="grid" /> */}
       <main>{children}</main>

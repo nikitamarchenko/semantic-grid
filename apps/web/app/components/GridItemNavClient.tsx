@@ -35,6 +35,7 @@ const GridItemNavClient = ({
   dashboardId,
   metadata,
   queryUid,
+  lastMessage,
 }: {
   id: string;
   dashboards: Dashboard[];
@@ -42,6 +43,7 @@ const GridItemNavClient = ({
   dashboardId?: string;
   metadata?: any;
   queryUid?: string;
+  lastMessage?: any;
 }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -128,7 +130,7 @@ const GridItemNavClient = ({
           {/* Spacer between primary nav and right-side controls */}
           <Box sx={{ flexGrow: 1 }} />
 
-          {!metadata && (
+          {!metadata && lastMessage && (
             <Box>
               <Typography
                 color="primary.main"
